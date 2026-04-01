@@ -3,15 +3,19 @@ using System.Collections;
 
 public class CarBoost : MonoBehaviour
 {
+    [Header("Boost Settings")]
     public float boostMultiplier = 2f;     // speed increase
     public float boostDuration = 2f;       // how long boost lasts
     public float boostForce = 5000f;       // extra push
+
+    [Header("Boost State (Read Only)")]
+    public bool isBoosting = false; // 👈 NOW PUBLIC (camera can access)
 
     private SimpleCarController carController;
     private Rigidbody rb;
 
     private float originalTorque;
-    private bool isBoosting = false;
+    private Coroutine boostCoroutine;
 
     void Start()
     {
@@ -23,9 +27,15 @@ public class CarBoost : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Boost") && !isBoosting)
+        if (other.CompareTag("Boost"))
         {
-            StartCoroutine(Boost());
+            // 🔥 Restart boost if already boosting (no stacking issues)
+            if (boostCoroutine != null)
+            {
+                StopCoroutine(boostCoroutine);
+            }
+
+            boostCoroutine = StartCoroutine(Boost());
         }
     }
 
@@ -33,7 +43,10 @@ public class CarBoost : MonoBehaviour
     {
         isBoosting = true;
 
-        // 🚀 Increase power
+        // 🚀 Reset to original before applying boost (prevents stacking bug)
+        carController.motorTorque = originalTorque;
+
+        // 🚀 Apply boost
         carController.motorTorque *= boostMultiplier;
 
         // 🚀 Instant forward push
@@ -41,9 +54,10 @@ public class CarBoost : MonoBehaviour
 
         yield return new WaitForSeconds(boostDuration);
 
-        // 🔙 Reset
+        // 🔙 Reset back cleanly
         carController.motorTorque = originalTorque;
 
         isBoosting = false;
+        boostCoroutine = null;
     }
 }

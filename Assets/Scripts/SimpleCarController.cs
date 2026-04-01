@@ -16,24 +16,52 @@ public class SimpleCarController : MonoBehaviour
     public Transform rearRightModel;
 
     [Header("Movement")]
-    public float motorTorque = 2500f; // 🔽 reduced for stability
+    public float motorTorque = 2500f;
     public float maxSpeed = 120f;
-    public float brakeForce = 4000f;
+    public float brakeForce = 4500f;
+
+    [Header("Brake Tuning")]
+    public float brakeSharpness = 5f;
+    public float brakeDrag = 1.5f;
+
+    [Header("Idle Brake Tuning")]
+    public float idleBrakeDelay = 1.5f;
+    public float idleBrakeSharpness = 2f;
 
     [Header("Control")]
     public bool canControl = true;
     public bool canSteer = true;
 
     [Header("Stability")]
-    public float downForce = 15f; // 🔽 less physics cost
-    public float stabilityForce = 4f;
+    public float stabilityForce = 6f;
+
+    [Header("Air Behavior")]
+    public float airGravityMultiplier = 0.7f;
+    public float airRotationDamping = 0.995f;
+    public float airForwardStability = 2f;
+
+    [Header("Air Lift")]
+    public float airLiftStrength = 0.02f;
+
+    [Header("Low Speed Stability")]
+    public float minSpeedThreshold = 0.5f;
+    public float lowSpeedDrag = 2f;
+
+    [Header("Landing Behavior")]
+    public float landingSmoothingTime = 0.2f;
+    private float landingTimer = 0f;
+    private bool wasInAir = false;
 
     private Rigidbody rb;
     private Vector3 lockedForward;
 
-    // 🔥 wheel update optimization
-    private float wheelUpdateTimer = 0f;
-    private float wheelUpdateRate = 0.05f; // update every 0.05 sec
+    private float idleTimer = 0f;
+
+    private float forwardInput;
+    private float horizontalInput;
+    private bool isBraking;
+
+    private float currentSteer;
 
     void Start()
     {
@@ -41,11 +69,10 @@ public class SimpleCarController : MonoBehaviour
 
         rb.centerOfMass = new Vector3(0, -0.5f, 0);
         rb.mass = 500f;
-        rb.drag = 0.05f;
-        rb.angularDrag = 0.2f;
 
-        // 🔥 IMPORTANT FOR MOBILE PERFORMANCE
-        rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+        rb.drag = 0.05f;
+        rb.angularDrag = 0.5f;
+
         rb.interpolation = RigidbodyInterpolation.Interpolate;
 
         lockedForward = transform.forward;
@@ -56,6 +83,13 @@ public class SimpleCarController : MonoBehaviour
         SetWheelFriction(rearRightWheel);
     }
 
+    void Update()
+    {
+        forwardInput = Input.GetAxis("Vertical");
+        horizontalInput = Input.GetAxis("Horizontal");
+        isBraking = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+    }
+
     void FixedUpdate()
     {
         if (canControl)
@@ -63,43 +97,56 @@ public class SimpleCarController : MonoBehaviour
         else
             StopCar();
 
-        if (IsGrounded())
+        bool grounded = IsGrounded();
+
+        if (grounded)
         {
-            ApplyDownforce();
+            if (wasInAir)
+            {
+                landingTimer = landingSmoothingTime;
+                wasInAir = false;
+            }
+
+            HandleLandingSmoothing();
             StabilizeCar();
+            UpdateAllWheels();
         }
         else
         {
-            rb.angularVelocity *= 0.98f;
-        }
-
-        // 🔥 OPTIMIZED wheel update
-        wheelUpdateTimer += Time.fixedDeltaTime;
-        if (wheelUpdateTimer >= wheelUpdateRate)
-        {
-            UpdateAllWheels();
-            wheelUpdateTimer = 0f;
+            wasInAir = true;
+            HandleAirPhysics();
         }
     }
 
     void HandleInput()
     {
-        float forwardInput = Input.GetAxis("Vertical");
-        float horizontal = Input.GetAxis("Horizontal");
+        float speed = rb.velocity.magnitude;
 
-        bool isBraking = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
-        float speed = rb.velocity.magnitude * 3.6f;
-
-        // 🚗 Forward
-        if (forwardInput > 0.01f)
+        // ✅ LOW SPEED JITTER FIX
+        if (speed < minSpeedThreshold && Mathf.Abs(forwardInput) < 0.1f)
         {
-            if (speed < maxSpeed)
-            {
-                rearLeftWheel.motorTorque = forwardInput * motorTorque;
-                rearRightWheel.motorTorque = forwardInput * motorTorque;
-            }
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
 
-            rb.AddForce(transform.forward * forwardInput * 40f); // 🔽 reduced
+            rearLeftWheel.motorTorque = 0;
+            rearRightWheel.motorTorque = 0;
+
+            rearLeftWheel.brakeTorque = brakeForce * 0.5f;
+            rearRightWheel.brakeTorque = brakeForce * 0.5f;
+
+            rb.drag = lowSpeedDrag;
+
+            return;
+        }
+
+        if (Mathf.Abs(forwardInput) > 0.01f || Mathf.Abs(horizontalInput) > 0.01f || isBraking)
+            idleTimer = 0f;
+
+        if (forwardInput > 0.01f && speed * 3.6f < maxSpeed)
+        {
+            float torque = forwardInput * motorTorque;
+            rearLeftWheel.motorTorque = torque;
+            rearRightWheel.motorTorque = torque;
         }
         else
         {
@@ -107,26 +154,52 @@ public class SimpleCarController : MonoBehaviour
             rearRightWheel.motorTorque = 0;
         }
 
-        // 🛑 Brake only grounded
         if (isBraking && IsGrounded())
         {
-            rearLeftWheel.brakeTorque = brakeForce;
-            rearRightWheel.brakeTorque = brakeForce;
+            float brake = brakeForce * Mathf.Lerp(0.7f, 1.2f, speed / 15f);
+
+            rearLeftWheel.brakeTorque = brake;
+            rearRightWheel.brakeTorque = brake;
+
+            rb.drag = brakeDrag;
+            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * brakeSharpness);
+        }
+        else if (forwardInput <= 0.01f)
+        {
+            idleTimer += Time.fixedDeltaTime;
+
+            if (idleTimer >= idleBrakeDelay)
+            {
+                rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * idleBrakeSharpness);
+
+                rearLeftWheel.brakeTorque = brakeForce * 0.5f;
+                rearRightWheel.brakeTorque = brakeForce * 0.5f;
+
+                rb.drag = 0.2f;
+            }
+            else
+            {
+                rearLeftWheel.brakeTorque = 0;
+                rearRightWheel.brakeTorque = 0;
+                rb.drag = 0.05f;
+            }
         }
         else
         {
             rearLeftWheel.brakeTorque = 0;
             rearRightWheel.brakeTorque = 0;
+            rb.drag = 0.05f;
         }
 
-        // 🔄 Steering
         if (canSteer)
         {
-            float steer = horizontal * 20f;
-            frontLeftWheel.steerAngle = steer;
-            frontRightWheel.steerAngle = steer;
+            float targetSteer = horizontalInput * 20f;
+            currentSteer = Mathf.Lerp(currentSteer, targetSteer, Time.fixedDeltaTime * 5f);
 
-            if (Mathf.Abs(horizontal) > 0.01f)
+            frontLeftWheel.steerAngle = currentSteer;
+            frontRightWheel.steerAngle = currentSteer;
+
+            if (Mathf.Abs(horizontalInput) > 0.01f)
                 lockedForward = transform.forward;
         }
         else
@@ -140,6 +213,46 @@ public class SimpleCarController : MonoBehaviour
 
             Quaternion targetRotation = Quaternion.LookRotation(lockedForward, Vector3.up);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.fixedDeltaTime * 5f);
+        }
+    }
+
+    void HandleAirPhysics()
+    {
+        float speed = rb.velocity.magnitude;
+
+        rb.AddForce(Physics.gravity * (airGravityMultiplier - 1f), ForceMode.Acceleration);
+
+        if (speed > 5f)
+        {
+            rb.AddForce(Vector3.up * speed * airLiftStrength, ForceMode.Acceleration);
+        }
+
+        rb.angularVelocity *= airRotationDamping;
+
+        Vector3 forwardProjected = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+        if (forwardProjected != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(forwardProjected, Vector3.up);
+            rb.rotation = Quaternion.Lerp(rb.rotation, targetRotation, Time.fixedDeltaTime * airForwardStability);
+        }
+    }
+
+    void HandleLandingSmoothing()
+    {
+        if (landingTimer > 0f)
+        {
+            landingTimer -= Time.fixedDeltaTime;
+
+            float t = 1f - (landingTimer / landingSmoothingTime);
+
+            float currentGravity = Mathf.Lerp(airGravityMultiplier, 1f, t);
+            rb.AddForce(Physics.gravity * (currentGravity - 1f), ForceMode.Acceleration);
+
+            Vector3 vel = rb.velocity;
+            vel.y = Mathf.Lerp(vel.y, 0f, t * 0.5f);
+            rb.velocity = vel;
+
+            rb.angularVelocity *= 0.9f;
         }
     }
 
@@ -159,7 +272,11 @@ public class SimpleCarController : MonoBehaviour
         float z = NormalizeAngle(euler.z);
 
         Vector3 torque = new Vector3(-x, 0f, -z) * stabilityForce;
+
         rb.AddRelativeTorque(torque, ForceMode.Acceleration);
+
+        if (rb.velocity.magnitude > 1f)
+            rb.angularVelocity *= 0.98f;
     }
 
     float NormalizeAngle(float angle)
@@ -179,11 +296,6 @@ public class SimpleCarController : MonoBehaviour
 
         frontLeftWheel.steerAngle = 0f;
         frontRightWheel.steerAngle = 0f;
-    }
-
-    void ApplyDownforce()
-    {
-        rb.AddForce(-transform.up * downForce * rb.velocity.magnitude);
     }
 
     void UpdateAllWheels()
@@ -209,7 +321,7 @@ public class SimpleCarController : MonoBehaviour
     void SetWheelFriction(WheelCollider wheel)
     {
         WheelFrictionCurve friction = wheel.sidewaysFriction;
-        friction.stiffness = 2f; // slightly lower for performance
+        friction.stiffness = 2.5f;
         wheel.sidewaysFriction = friction;
     }
 }

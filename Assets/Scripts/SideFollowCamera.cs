@@ -4,7 +4,7 @@ public class SideFollowCamera : MonoBehaviour
 {
     private Transform target;
     private Rigidbody targetRb;
-    private CarBoost boostScript; // 👈 ADD THIS
+    private CarBoost boostScript;
 
     [Header("Offset Settings")]
     public Vector3 offset = new Vector3(-8f, 4f, -6f);
@@ -41,17 +41,20 @@ public class SideFollowCamera : MonoBehaviour
 
     void FindCar()
     {
-        SimpleCarController car = FindObjectOfType<SimpleCarController>();
+        GameObject pivot = GameObject.Find("Camera_Pivot");
 
-        if (car != null)
+        if (pivot != null)
         {
-            target = car.transform;
-            targetRb = car.GetComponent<Rigidbody>();
-            boostScript = car.GetComponent<CarBoost>(); // 👈 IMPORTANT
+            target = pivot.transform;
+
+            targetRb = pivot.GetComponentInParent<Rigidbody>();
+            boostScript = pivot.GetComponentInParent<CarBoost>();
+
+            Debug.Log("✅ Camera target found: Camera_Pivot");
         }
         else
         {
-            Debug.LogWarning("No Car found! Retrying...");
+            Debug.LogWarning("Camera_Pivot not found! Retrying...");
             Invoke(nameof(FindCar), 1f);
         }
     }
@@ -60,14 +63,25 @@ public class SideFollowCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        Vector3 desiredPosition = transform.position;
-        desiredPosition.x = target.position.x + offset.x;
+        // 🔥 IMPROVED FOLLOW (more stable)
+        Vector3 desiredPosition = target.position + offset;
 
-        desiredPosition.y = initialPosition.y;
-        desiredPosition.z = initialPosition.z;
+        if (lockY) desiredPosition.y = initialPosition.y;
+        if (lockZ) desiredPosition.z = initialPosition.z;
 
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
-        transform.rotation = fixedRotation;
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * followSpeed);
+
+        // 🔥 LOOK AT WITH X-AXIS LOCK (no vertical tilt)
+        Vector3 direction = target.position - transform.position;
+        direction.y = 0f; // 🔥 lock X rotation
+
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+
+            // 🔥 smoother rotation (no snapping)
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * followSpeed);
+        }
 
         HandleFOV();
     }
@@ -94,6 +108,6 @@ public class SideFollowCamera : MonoBehaviour
 
     bool IsBoosting()
     {
-        return boostScript != null && boostScript.isBoosting; // ✅ REAL BOOST CHECK
+        return boostScript != null && boostScript.isBoosting;
     }
 }

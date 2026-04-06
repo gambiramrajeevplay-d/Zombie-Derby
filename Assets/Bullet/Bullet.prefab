@@ -122,11 +122,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 415f2afe6b748984295b73eb95756070, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 30
-  lifeTime: 3
-  impactForce: 6
-  hitSparkPrefab: {fileID: 0}
-  bloodEffectPrefab: {fileID: 0}
+  speed: 50
+  lifeTime: 5
 --- !u!54 &2655619927322244373
 Rigidbody:
   m_ObjectHideFlags: 0

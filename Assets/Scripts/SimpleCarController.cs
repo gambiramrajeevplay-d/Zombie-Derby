@@ -52,6 +52,12 @@ public class SimpleCarController : MonoBehaviour
     private float landingTimer = 0f;
     private bool wasInAir = false;
 
+    [Header("Lane Centering")]
+    public LayerMask roadLayer;     // assign your road layer
+    public float rayDistance = 2.5f;
+    public float centeringForce = 10f;
+    public float maxOffset = 1.5f;
+
     private Rigidbody rb;
     private Vector3 lockedForward;
 
@@ -96,6 +102,8 @@ public class SimpleCarController : MonoBehaviour
             HandleInput();
         else
             StopCar();
+
+        KeepCarCentered();
 
         bool grounded = IsGrounded();
 
@@ -421,5 +429,29 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
         sideways.stiffness = 1.6f;
         wc.sidewaysFriction = sideways;
         wc.wheelDampingRate = 1.5f;
+    }
+    void KeepCarCentered()
+    {
+        Vector3 leftOrigin = transform.position - transform.right * 0.5f;
+        Vector3 rightOrigin = transform.position + transform.right * 0.5f;
+
+        RaycastHit leftHit, rightHit;
+
+        bool hitLeft = Physics.Raycast(leftOrigin, -transform.right, out leftHit, rayDistance, roadLayer);
+        bool hitRight = Physics.Raycast(rightOrigin, transform.right, out rightHit, rayDistance, roadLayer);
+
+        if (hitLeft && hitRight)
+        {
+            float leftDist = leftHit.distance;
+            float rightDist = rightHit.distance;
+
+            float offset = rightDist - leftDist;
+
+            // clamp to avoid over-correction
+            offset = Mathf.Clamp(offset, -maxOffset, maxOffset);
+
+            // apply smooth centering force
+            rb.AddForce(transform.right * offset * centeringForce, ForceMode.Acceleration);
+        }
     }
 }

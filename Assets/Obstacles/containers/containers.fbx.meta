@@ -1,14 +1,19 @@
 fileFormatVersion: 2
-guid: 078a66ff6b5f9ff4f8b1f99603978a84
+guid: abb9a4146ef8ae848a5bae2d95ceaf00
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
   externalObjects:
   - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: 2100000, guid: 870b5dbd9509a474f8efc24f77e8e33d, type: 2}
+  - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: TextureAtlass
-    second: {fileID: 2800000, guid: 08b6ccbb3e426b24ea7dcd25e7c74cb8, type: 3}
+      name: c0760c965c5b4b179943a2180bb68108_RGB_sm_shippingContainer_color1
+    second: {fileID: 2800000, guid: 36dc888c377ae2e41a719fd14f440324, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

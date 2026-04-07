@@ -7,15 +7,23 @@ public class Bullet : MonoBehaviour
 
     private Rigidbody rb;
 
+    [Header("Impact Sounds")]
+    public AudioClip canHitClip;
+    public AudioClip boxHitClip;
+
+    [Header("Can Particles ONLY")]
+    public ParticleSystem canHitParticle;
+
+    private AudioSource impactAudio;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        CreateAudio();
 
         if (rb != null)
         {
             rb.useGravity = false;
-
-            // ✅ FORCE STRICT -X DIRECTION
             rb.velocity = -Vector3.right * speed;
 
             rb.constraints = RigidbodyConstraints.FreezePositionY |
@@ -30,22 +38,82 @@ public class Bullet : MonoBehaviour
     {
         GameObject hitObj = collision.gameObject;
 
+        Vector3 hitPoint = collision.contacts[0].point;
+        Vector3 dir = -Vector3.right;
+
+        // 🧟 ZOMBIE
         ZombieBreak zb = hitObj.GetComponentInParent<ZombieBreak>();
         if (zb != null)
         {
-            zb.Break(transform.position, -Vector3.right);
+            zb.Break(hitPoint, dir);
         }
 
-        if (hitObj.CompareTag("Obstacle") || hitObj.CompareTag("Can")|| hitObj.CompareTag("Zombie"))
+        // 🥫 CAN (ONLY HERE WE SPAWN PARTICLES + SOUND)
+        if (hitObj.CompareTag("Can"))
         {
-            Rigidbody hitRb = hitObj.GetComponent<Rigidbody>();
+            float duration = SpawnCanParticle(hitPoint, dir);
+            PlaySound(canHitClip);
 
-            if (hitRb != null)
-            {
-                hitRb.AddForce(-Vector3.right * 5f, ForceMode.Impulse);
-            }
+            StartCoroutine(DisableAfterEffect(hitObj, duration));
+        }
+
+        // 🟫 BOX (ONLY SOUND)
+        else if (hitObj.CompareTag("Obstacle"))
+        {
+            PlaySound(boxHitClip);
+        }
+
+        // 💪 FORCE
+        Rigidbody hitRb = hitObj.GetComponent<Rigidbody>();
+        if (hitRb != null)
+        {
+            hitRb.AddForce(dir * 5f, ForceMode.Impulse);
         }
 
         Destroy(gameObject);
+    }
+
+    float SpawnCanParticle(Vector3 position, Vector3 direction)
+    {
+        if (canHitParticle == null) return 0f;
+
+        Quaternion rot = Quaternion.LookRotation(-direction);
+
+        ParticleSystem instance = Instantiate(canHitParticle, position, rot);
+        instance.Play();
+
+        float duration = instance.main.duration + instance.main.startLifetime.constantMax;
+
+        Destroy(instance.gameObject, duration);
+
+        return duration;
+    }
+
+    void CreateAudio()
+    {
+        GameObject audioObj = new GameObject("ImpactAudio");
+        audioObj.transform.parent = null;
+        audioObj.transform.position = transform.position;
+
+        impactAudio = audioObj.AddComponent<AudioSource>();
+        impactAudio.spatialBlend = 1f;
+        impactAudio.playOnAwake = false;
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (impactAudio == null || clip == null) return;
+
+        impactAudio.pitch = Random.Range(0.9f, 1.1f);
+        impactAudio.PlayOneShot(clip);
+
+        Destroy(impactAudio.gameObject, clip.length);
+    }
+    System.Collections.IEnumerator DisableAfterEffect(GameObject obj, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (obj != null)
+            obj.SetActive(false);
     }
 }

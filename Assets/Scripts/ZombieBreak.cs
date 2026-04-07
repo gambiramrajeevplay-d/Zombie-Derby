@@ -24,9 +24,20 @@ public class ZombieBreak : MonoBehaviour
 
     private bool broken = false;
 
+    [Header("Break Particles")]
+    public ParticleSystem[] breakParticles;
+
+    [Header("Zombie Sound")]
+    public AudioClip aliveClip;
+    public AudioClip deathClip;
+
+    private AudioSource zombieAudio;
     void Start()
     {
         ragdollRoot.SetActive(true);
+
+        CreateAudioSource();
+        PlayAliveSound();
 
         foreach (Rigidbody rb in ragdollBodies)
             if (rb != null) rb.isKinematic = true;
@@ -42,6 +53,32 @@ public class ZombieBreak : MonoBehaviour
     {
         if (broken) return;
         broken = true;
+
+        // 🔊 SWITCH TO DEATH SOUND
+        if (zombieAudio != null && deathClip != null)
+        {
+            zombieAudio.Stop();
+            zombieAudio.loop = false;
+            zombieAudio.clip = deathClip;
+            zombieAudio.Play();
+            zombieAudio.pitch = Random.Range(0.9f, 1.1f);
+            zombieAudio.minDistance = 3f;
+            zombieAudio.maxDistance = 25f;
+
+            Destroy(zombieAudio.gameObject, deathClip.length);
+        }
+
+        // 🔥 PLAY PARTICLES
+        foreach (ParticleSystem ps in breakParticles)
+        {
+            if (ps != null)
+            {
+                ps.transform.parent = null; // detach (optional)
+                ps.Play();
+
+                Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
+            }
+        }
 
         if (animatedBody != null)
             animatedBody.SetActive(false);
@@ -84,6 +121,26 @@ public class ZombieBreak : MonoBehaviour
             rb.AddTorque(Random.onUnitSphere * 2f, ForceMode.Impulse);
 
             Destroy(rb.gameObject, destroyDelay);
+        }
+    }
+    void CreateAudioSource()
+    {
+        GameObject audioObj = new GameObject("ZombieAudio");
+        audioObj.transform.parent = transform;
+        audioObj.transform.localPosition = Vector3.zero;
+
+        zombieAudio = audioObj.AddComponent<AudioSource>();
+        zombieAudio.spatialBlend = 1f; // 3D sound
+        zombieAudio.playOnAwake = false;
+        zombieAudio.loop = true;
+    }
+    void PlayAliveSound()
+    {
+        if (zombieAudio != null && aliveClip != null)
+        {
+            zombieAudio.clip = aliveClip;
+            zombieAudio.loop = true;
+            zombieAudio.Play();
         }
     }
 }

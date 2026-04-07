@@ -69,8 +69,21 @@ public class SimpleCarController : MonoBehaviour
 
     private float currentSteer;
 
+    [Header("Engine Sound")]
+    public bool canPlayEngineSound = true;
+    public AudioClip engineClip;
+
+    private AudioSource engineSource;
+
+    [Range(0.5f, 3f)] public float minPitch = 0.8f;
+    [Range(0.5f, 3f)] public float maxPitch = 2.2f;
+
+    public float minVolume = 0.2f;
+    public float maxVolume = 1f;
     void Start()
     {
+        CreateEngineAudio();
+
         rb = GetComponent<Rigidbody>();
 
         rb.centerOfMass = new Vector3(0, -0.8f, 0);
@@ -91,6 +104,7 @@ public class SimpleCarController : MonoBehaviour
 
     void Update()
     {
+        HandleEngineSound();
         forwardInput = Input.GetAxis("Vertical"); // ONLY forward/back
         horizontalInput = 0f; // ❌ disable steering
         isBraking = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
@@ -149,8 +163,47 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
         }
     }
 
-    // ONLY HandleInput() UPDATED — rest of your script unchanged
+   
+    void CreateEngineAudio()
+    {
+        GameObject engineObj = new GameObject("EngineAudio");
+        engineObj.transform.parent = transform;
+        engineObj.transform.localPosition = Vector3.zero;
 
+        engineSource = engineObj.AddComponent<AudioSource>();
+        engineSource.clip = engineClip;
+        engineSource.loop = true;
+        engineSource.playOnAwake = false;
+        engineSource.spatialBlend = 1f; // 3D sound
+
+        if (engineClip != null)
+            engineSource.Play();
+    }
+    void HandleEngineSound()
+    {
+        if (!canPlayEngineSound || engineSource == null)
+        {
+            if (engineSource != null && engineSource.isPlaying)
+                engineSource.Stop();
+            return;
+        }
+
+        if (!engineSource.isPlaying && engineClip != null)
+            engineSource.Play();
+
+        float speed = rb.velocity.magnitude;
+
+        // Normalize speed
+        float speedPercent = Mathf.Clamp01(speed / (maxSpeed / 3.6f));
+
+        // RCC-style pitch
+        float targetPitch = Mathf.Lerp(minPitch, maxPitch, speedPercent);
+        engineSource.pitch = Mathf.Lerp(engineSource.pitch, targetPitch, Time.deltaTime * 5f);
+
+        // Volume based on throttle + speed
+        float targetVolume = Mathf.Lerp(minVolume, maxVolume, speedPercent);
+        engineSource.volume = Mathf.Lerp(engineSource.volume, targetVolume, Time.deltaTime * 5f);
+    }
     void HandleInput()
     {
         float speed = rb.velocity.magnitude;

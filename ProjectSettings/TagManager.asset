@@ -11,6 +11,10 @@ TagManager:
   - Obstacle
   - ammo text
   - Can
+  - Sound
+  - ammo count
+  - Health_Text
+  - Health_Fill
   layers:
   - Default
   - TransparentFX

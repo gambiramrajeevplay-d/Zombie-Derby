@@ -21,6 +21,11 @@ public class CarBoost : MonoBehaviour
     private float originalTorque;
     private Coroutine boostCoroutine;
 
+    [Header("Boost Sound")]
+    public AudioClip boostClip;
+
+    private AudioSource boostAudio;
+
     void Start()
     {
         carController = GetComponent<SimpleCarController>();
@@ -30,6 +35,7 @@ public class CarBoost : MonoBehaviour
 
         // 🔒 Ensure particles are OFF at start
         SetParticles(false);
+        CreateBoostAudio();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -44,10 +50,27 @@ public class CarBoost : MonoBehaviour
             boostCoroutine = StartCoroutine(Boost());
         }
     }
+    void CreateBoostAudio()
+    {
+        GameObject audioObj = new GameObject("BoostAudio");
+        audioObj.transform.parent = transform;
+        audioObj.transform.localPosition = Vector3.zero;
 
+        boostAudio = audioObj.AddComponent<AudioSource>();
+        boostAudio.spatialBlend = 1f; // 3D sound
+        boostAudio.playOnAwake = false;
+    }
     IEnumerator Boost()
     {
         isBoosting = true;
+
+        // 🔊 PLAY BOOST SOUND
+        if (boostAudio != null && boostClip != null)
+        {
+            boostAudio.PlayOneShot(boostClip);
+            boostAudio.pitch = Random.Range(0.95f, 1.1f);
+            boostAudio.volume = 1.2f;
+        }
 
         // 🔥 TURN ON PARTICLES
         SetParticles(true);

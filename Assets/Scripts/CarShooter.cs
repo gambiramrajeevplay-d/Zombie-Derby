@@ -32,15 +32,43 @@ public class CarShooter : MonoBehaviour
     private bool permanentlyDisabled = false;
     private bool isShowingAmmoText = false;
 
+    [Header("Shoot Sound")]
+    public AudioClip shootClip;
+
+    private AudioSource soundSource;
+
+    [Header("Cone Detection")]
+    public float detectRadius = 1.5f;
     void Start()
     {
         currentAmmo = maxAmmo;
+
+        // 🔍 Get Ammo Counter (Top UI)
+        GameObject ammoCountObj = GameObject.FindGameObjectWithTag("ammo count");
+        if (ammoCountObj != null)
+            ammoCounterText = ammoCountObj.GetComponent<TextMeshProUGUI>();
+        else
+            Debug.LogWarning("No GameObject with tag 'ammo count' found!");
+
+        // 🔍 Get Floating Ammo Text
+        GameObject ammoTextObj = GameObject.FindGameObjectWithTag("ammo text");
+        if (ammoTextObj != null)
+            ammoFloatingText = ammoTextObj.GetComponent<FloatingText>();
+        else
+            Debug.LogWarning("No GameObject with tag 'ammo text' found!");
+
         UpdateAmmoUI();
 
         if (ammoFloatingText != null)
             ammoFloatingText.gameObject.SetActive(false);
-    }
 
+        // 🔊 Get Sound Source
+        GameObject soundObj = GameObject.FindGameObjectWithTag("Sound");
+        if (soundObj != null)
+            soundSource = soundObj.GetComponent<AudioSource>();
+        else
+            Debug.LogWarning("No GameObject with tag 'Sound' found!");
+    }
     void Update()
     {
         if (permanentlyDisabled) return;
@@ -61,24 +89,46 @@ public class CarShooter : MonoBehaviour
         Ray ray = new Ray(firePoint.position, Vector3.left);
         RaycastHit hit;
 
-        Debug.DrawRay(ray.origin, ray.direction * shootRange, Color.red);
+        // 🔥 SphereCast instead of Raycast
+        bool hasHit = Physics.SphereCast(ray, detectRadius, out hit, shootRange, targetLayers);
 
-        if (Physics.Raycast(ray, out hit, shootRange, targetLayers))
+        // Debug cone (visual help)
+        DrawSphereCast(firePoint.position, Vector3.left, detectRadius, shootRange);
+        //if (hasHit)
+        //{
+        //    GameObject hitObj = hit.collider.gameObject;
+
+        //    if (hitObj.CompareTag("Zombie") ||
+        //        hitObj.CompareTag("Obstacle") ||
+        //        hitObj.CompareTag("Can"))
+        //    {
+        //        // 🎯 AUTO AIM
+        //        Vector3 direction = (hit.point - firePoint.position).normalized;
+        //        Quaternion lookRotation = Quaternion.LookRotation(direction);
+        //        firePoint.rotation = lookRotation;
+        //    }
+        //}
+        Collider[] hits = Physics.OverlapSphere(firePoint.position, shootRange, targetLayers);
+
+        foreach (Collider col in hits)
         {
-            GameObject hitObj = hit.collider.gameObject;
+            Vector3 dirToTarget = (col.transform.position - firePoint.position).normalized;
 
-            if (hitObj.CompareTag("Zombie") ||
-                hitObj.CompareTag("Obstacle") ||
-                hitObj.CompareTag("Can"))
+            float angle = Vector3.Angle(Vector3.left, dirToTarget);
+
+            if (angle < 30f) // 🔥 cone angle
             {
-                // 🎯 AUTO AIM ONLY (NO SHOOT)
-                Vector3 direction = (hit.point - firePoint.position).normalized;
-                Quaternion lookRotation = Quaternion.LookRotation(direction);
-                firePoint.rotation = lookRotation;
+                if (col.CompareTag("Zombie") ||
+                    col.CompareTag("Obstacle") ||
+                    col.CompareTag("Can"))
+                {
+                    Quaternion lookRotation = Quaternion.LookRotation(dirToTarget);
+                    firePoint.rotation = lookRotation;
+                    break;
+                }
             }
         }
     }
-
     void TryShoot()
     {
         if (Time.time < lastShootTime + fireRate) return;
@@ -92,11 +142,21 @@ public class CarShooter : MonoBehaviour
         lastShootTime = Time.time;
 
         SpawnBullet();
-        currentAmmo--;
 
+        // 🔊 PLAY SOUND HERE
+        PlayShootSound();
+
+        currentAmmo--;
         UpdateAmmoUI();
     }
-
+    void PlayShootSound()
+    {
+        if (soundSource != null && shootClip != null)
+        {
+            soundSource.PlayOneShot(shootClip);
+            soundSource.pitch = Random.Range(0.9f, 1.1f);
+        }
+    }
     void SpawnBullet()
     {
         if (!bulletPrefab || !firePoint)
@@ -147,5 +207,16 @@ public class CarShooter : MonoBehaviour
     {
         permanentlyDisabled = true;
         canShoot = false;
+    }
+    void DrawSphereCast(Vector3 origin, Vector3 direction, float radius, float distance)
+    {
+        // Draw center line
+        Debug.DrawRay(origin, direction * distance, Color.red);
+
+        // Draw multiple offset rays (fake cone visual)
+        Debug.DrawRay(origin + Vector3.up * radius, direction * distance, Color.green);
+        Debug.DrawRay(origin - Vector3.up * radius, direction * distance, Color.green);
+        Debug.DrawRay(origin + Vector3.right * radius, direction * distance, Color.green);
+        Debug.DrawRay(origin - Vector3.right * radius, direction * distance, Color.green);
     }
 }

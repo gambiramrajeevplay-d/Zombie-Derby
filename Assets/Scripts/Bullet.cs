@@ -15,7 +15,7 @@ public class Bullet : MonoBehaviour
     public ParticleSystem canHitParticle;
 
     private AudioSource impactAudio;
-
+    Transform target;
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -26,11 +26,21 @@ public class Bullet : MonoBehaviour
             rb.useGravity = false;
             rb.velocity = -Vector3.right * speed;
 
-            rb.constraints = RigidbodyConstraints.FreezePositionY |
-                             RigidbodyConstraints.FreezePositionZ |
-                             RigidbodyConstraints.FreezeRotation;
-        }
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
 
+            //    rb.constraints = RigidbodyConstraints.FreezePositionY |
+            //                     RigidbodyConstraints.FreezePositionZ |
+            //                     RigidbodyConstraints.FreezeRotation;
+        }
+        //if (target != null)
+        //{
+        //    //Vector3 dir = (target.position - transform.position).normalized;
+        //    //rb.velocity = dir * speed;
+        //}
+        //else
+        //{
+        //    rb.velocity = transform.forward * speed;
+        //}
         Destroy(gameObject, lifeTime);
     }
 
@@ -71,6 +81,10 @@ public class Bullet : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+    public void SetTarget(Transform t)
+    {
+        target = t;
     }
 
     float SpawnCanParticle(Vector3 position, Vector3 direction)

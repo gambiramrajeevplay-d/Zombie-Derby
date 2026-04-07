@@ -47,7 +47,7 @@ public class CarBoost : MonoBehaviour
                 StopCoroutine(boostCoroutine);
             }
 
-            boostCoroutine = StartCoroutine(Boost());
+            boostCoroutine = StartCoroutine(Boost(other.gameObject));
         }
     }
     void CreateBoostAudio()
@@ -60,20 +60,30 @@ public class CarBoost : MonoBehaviour
         boostAudio.spatialBlend = 1f; // 3D sound
         boostAudio.playOnAwake = false;
     }
-    IEnumerator Boost()
+    IEnumerator Boost(GameObject pickup)
     {
         isBoosting = true;
+
+        float soundDuration = 0.5f;
 
         // 🔊 PLAY BOOST SOUND
         if (boostAudio != null && boostClip != null)
         {
-            boostAudio.PlayOneShot(boostClip);
             boostAudio.pitch = Random.Range(0.95f, 1.1f);
             boostAudio.volume = 1.2f;
+            boostAudio.PlayOneShot(boostClip);
+
+            soundDuration = boostClip.length;
         }
 
         // 🔥 TURN ON PARTICLES
         SetParticles(true);
+
+        // 🔥 HIDE PICKUP IMMEDIATELY (optional)
+        pickup.SetActive(false);
+
+        // 🔥 DESTROY AFTER SOUND
+        Destroy(pickup, soundDuration);
 
         // Reset torque
         carController.motorTorque = originalTorque;

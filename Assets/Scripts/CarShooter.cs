@@ -32,15 +32,45 @@ public class CarShooter : MonoBehaviour
     private bool permanentlyDisabled = false;
     private bool isShowingAmmoText = false;
 
+    [Header("Shoot Sound")]
+    public AudioClip shootClip;
+
+    private AudioSource soundSource;
+
+    [Header("Cone Detection")]
+    public float detectRadius = 1.5f;
+
+    Transform currentTarget;
     void Start()
     {
         currentAmmo = maxAmmo;
+
+        // 🔍 Get Ammo Counter (Top UI)
+        GameObject ammoCountObj = GameObject.FindGameObjectWithTag("ammo count");
+        if (ammoCountObj != null)
+            ammoCounterText = ammoCountObj.GetComponent<TextMeshProUGUI>();
+        else
+            Debug.LogWarning("No GameObject with tag 'ammo count' found!");
+
+        // 🔍 Get Floating Ammo Text
+        GameObject ammoTextObj = GameObject.FindGameObjectWithTag("ammo text");
+        if (ammoTextObj != null)
+            ammoFloatingText = ammoTextObj.GetComponent<FloatingText>();
+        else
+            Debug.LogWarning("No GameObject with tag 'ammo text' found!");
+
         UpdateAmmoUI();
 
         if (ammoFloatingText != null)
             ammoFloatingText.gameObject.SetActive(false);
-    }
 
+        // 🔊 Get Sound Source
+        GameObject soundObj = GameObject.FindGameObjectWithTag("Sound");
+        if (soundObj != null)
+            soundSource = soundObj.GetComponent<AudioSource>();
+        else
+            Debug.LogWarning("No GameObject with tag 'Sound' found!");
+    }
     void Update()
     {
         if (permanentlyDisabled) return;
@@ -56,29 +86,99 @@ public class CarShooter : MonoBehaviour
         DetectAndShoot();
     }
 
+    //void DetectAndShoot()
+    //{
+    //    Ray ray = new Ray(firePoint.position, Vector3.left);
+    //    RaycastHit hit;
+
+    //    // 🔥 SphereCast instead of Raycast
+    //    bool hasHit = Physics.SphereCast(ray, detectRadius, out hit, shootRange, targetLayers);
+
+    //    // Debug cone (visual help)
+    //    DrawSphereCast(firePoint.position, Vector3.left, detectRadius, shootRange);
+    //    //if (hasHit)
+    //    //{
+    //    //    GameObject hitObj = hit.collider.gameObject;
+
+    //    //    if (hitObj.CompareTag("Zombie") ||
+    //    //        hitObj.CompareTag("Obstacle") ||
+    //    //        hitObj.CompareTag("Can"))
+    //    //    {
+    //    //        // 🎯 AUTO AIM
+    //    //        Vector3 direction = (hit.point - firePoint.position).normalized;
+    //    //        Quaternion lookRotation = Quaternion.LookRotation(direction);
+    //    //        firePoint.rotation = lookRotation;
+    //    //    }
+    //    //}
+    //    Collider[] hits = Physics.OverlapSphere(firePoint.position, shootRange, targetLayers);
+
+    //    foreach (Collider col in hits)
+    //    {
+    //        Vector3 dirToTarget = (col.transform.position - firePoint.position).normalized;
+
+    //        float angle = Vector3.Angle(Vector3.left, dirToTarget);
+
+    //        if (angle < 30f) // 🔥 cone angle
+    //        {
+    //            if (col.CompareTag("Zombie") ||
+    //                col.CompareTag("Obstacle") ||
+    //                col.CompareTag("Can"))
+    //            {
+    //                Quaternion lookRotation = Quaternion.LookRotation(dirToTarget);
+    //                firePoint.rotation = lookRotation;
+    //                break;
+    //            }
+    //        }
+    //    }
+    //}
     void DetectAndShoot()
-    {
-        Ray ray = new Ray(firePoint.position, Vector3.left);
-        RaycastHit hit;
+{
+    // 🔥 CORRECT FORWARD DIRECTION
+    Vector3 dir = firePoint.forward;
 
-        Debug.DrawRay(ray.origin, ray.direction * shootRange, Color.red);
+    Ray ray = new Ray(firePoint.position, dir);
+    RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, shootRange, targetLayers))
+    // 🔥 THICK RAY (SphereCast)
+    bool hasHit = Physics.SphereCast(ray, detectRadius, out hit, shootRange, targetLayers);
+
+    // 🔥 DEBUG (NOW POINTS CORRECTLY)
+    DrawSphereCast(firePoint.position, dir, detectRadius, shootRange);
+
+    // 🎯 AUTO AIM USING CONE
+    Collider[] hits = Physics.OverlapSphere(firePoint.position, shootRange, targetLayers);
+
+    Transform bestTarget = null;
+        currentTarget = null;
+
+        foreach (Collider col in hits)
         {
-            GameObject hitObj = hit.collider.gameObject;
+            if (!(col.CompareTag("Zombie") ||
+                  col.CompareTag("Obstacle") ||
+                  col.CompareTag("Can")))
+                continue;
 
-            if (hitObj.CompareTag("Zombie") ||
-                hitObj.CompareTag("Obstacle") ||
-                hitObj.CompareTag("Can"))
+            Vector3 dirToTarget = (col.transform.position - firePoint.position).normalized;
+
+            float angle = Vector3.Angle(firePoint.forward, dirToTarget);
+
+            if (angle < 30f)
             {
-                // 🎯 AUTO AIM ONLY (NO SHOOT)
-                Vector3 direction = (hit.point - firePoint.position).normalized;
-                Quaternion lookRotation = Quaternion.LookRotation(direction);
-                firePoint.rotation = lookRotation;
+                Debug.Log("TARGET LOCKED: " + col.name);
+
+                currentTarget = col.transform;
+
+                firePoint.rotation = Quaternion.LookRotation(dirToTarget);
+                break;
             }
         }
+        // 🎯 AIM
+        if (bestTarget != null)
+    {
+        Vector3 targetDir = (bestTarget.position - firePoint.position).normalized;
+        firePoint.rotation = Quaternion.LookRotation(targetDir);
     }
-
+}
     void TryShoot()
     {
         if (Time.time < lastShootTime + fireRate) return;
@@ -92,23 +192,49 @@ public class CarShooter : MonoBehaviour
         lastShootTime = Time.time;
 
         SpawnBullet();
-        currentAmmo--;
 
+        // 🔊 PLAY SOUND HERE
+        PlayShootSound();
+
+        currentAmmo--;
         UpdateAmmoUI();
     }
+    void PlayShootSound()
+    {
+        if (soundSource != null && shootClip != null)
+        {
+            soundSource.PlayOneShot(shootClip);
+            soundSource.pitch = Random.Range(0.9f, 1.1f);
+        }
+    }
+    //void SpawnBullet()
+    //{
+    //    if (!bulletPrefab || !firePoint)
+    //    {
+    //        Debug.LogWarning("Missing bulletPrefab or firePoint");
+    //        return;
+    //    }
 
+    //    // 🔥 NO CHANGE to bullet direction
+    //    Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+    //}
     void SpawnBullet()
     {
-        if (!bulletPrefab || !firePoint)
+        if (!bulletPrefab || !firePoint) return;
+
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+
+        // 🎯 LOCK BULLET TO TARGET
+        if (currentTarget != null)
         {
-            Debug.LogWarning("Missing bulletPrefab or firePoint");
-            return;
+            Bullet bulletScript = bullet.GetComponent<Bullet>();
+
+            if (bulletScript != null)
+            {
+                bulletScript.SetTarget(currentTarget);
+            }
         }
-
-        // 🔥 NO CHANGE to bullet direction
-        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
     }
-
     void UpdateAmmoUI()
     {
         if (ammoCounterText != null)
@@ -148,4 +274,29 @@ public class CarShooter : MonoBehaviour
         permanentlyDisabled = true;
         canShoot = false;
     }
+  void DrawSphereCast(Vector3 origin, Vector3 direction, float radius, float distance)
+{
+    // 🔴 center line
+    Debug.DrawRay(origin, direction * distance, Color.red);
+
+    Vector3 end = origin + direction * distance;
+
+    // 🔥 FIX: get correct perpendicular axes
+    Vector3 up = firePoint.up;
+    Vector3 right = firePoint.right;
+
+    int segments = 24;
+    float angleStep = 360f / segments;
+
+    for (int i = 0; i < segments; i++)
+    {
+        float angle1 = i * angleStep * Mathf.Deg2Rad;
+        float angle2 = (i + 1) * angleStep * Mathf.Deg2Rad;
+
+        Vector3 p1 = end + (right * Mathf.Cos(angle1) + up * Mathf.Sin(angle1)) * radius;
+        Vector3 p2 = end + (right * Mathf.Cos(angle2) + up * Mathf.Sin(angle2)) * radius;
+
+        Debug.DrawLine(p1, p2, Color.green);
+    }
+}
 }

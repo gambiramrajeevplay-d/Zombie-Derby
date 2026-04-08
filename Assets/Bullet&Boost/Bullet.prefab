@@ -124,6 +124,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 50
   lifeTime: 5
+  canHitClip: {fileID: 8300000, guid: 79c3cb7a26813d146b07c293b0324039, type: 3}
+  boxHitClip: {fileID: 8300000, guid: 9c8a4e5c2d9d3df4584906ce72ea8ea4, type: 3}
+  canHitParticle: {fileID: 19848870, guid: a7c694f0877ea874fa57e033221095c3, type: 3}
 --- !u!54 &2655619927322244373
 Rigidbody:
   m_ObjectHideFlags: 0

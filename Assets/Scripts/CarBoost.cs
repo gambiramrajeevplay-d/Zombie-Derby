@@ -21,6 +21,11 @@ public class CarBoost : MonoBehaviour
     private float originalTorque;
     private Coroutine boostCoroutine;
 
+    [Header("Boost Sound")]
+    public AudioClip boostClip;
+
+    private AudioSource boostAudio;
+
     void Start()
     {
         carController = GetComponent<SimpleCarController>();
@@ -30,6 +35,7 @@ public class CarBoost : MonoBehaviour
 
         // 🔒 Ensure particles are OFF at start
         SetParticles(false);
+        CreateBoostAudio();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -41,16 +47,43 @@ public class CarBoost : MonoBehaviour
                 StopCoroutine(boostCoroutine);
             }
 
-            boostCoroutine = StartCoroutine(Boost());
+            boostCoroutine = StartCoroutine(Boost(other.gameObject));
         }
     }
+    void CreateBoostAudio()
+    {
+        GameObject audioObj = new GameObject("BoostAudio");
+        audioObj.transform.parent = transform;
+        audioObj.transform.localPosition = Vector3.zero;
 
-    IEnumerator Boost()
+        boostAudio = audioObj.AddComponent<AudioSource>();
+        boostAudio.spatialBlend = 1f; // 3D sound
+        boostAudio.playOnAwake = false;
+    }
+    IEnumerator Boost(GameObject pickup)
     {
         isBoosting = true;
 
+        float soundDuration = 0.5f;
+
+        // 🔊 PLAY BOOST SOUND
+        if (boostAudio != null && boostClip != null)
+        {
+            boostAudio.pitch = Random.Range(0.95f, 1.1f);
+            boostAudio.volume = 1.2f;
+            boostAudio.PlayOneShot(boostClip);
+
+            soundDuration = boostClip.length;
+        }
+
         // 🔥 TURN ON PARTICLES
         SetParticles(true);
+
+        // 🔥 HIDE PICKUP IMMEDIATELY (optional)
+        pickup.SetActive(false);
+
+        // 🔥 DESTROY AFTER SOUND
+        Destroy(pickup, soundDuration);
 
         // Reset torque
         carController.motorTorque = originalTorque;

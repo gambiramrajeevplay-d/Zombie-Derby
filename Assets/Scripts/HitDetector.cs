@@ -44,6 +44,12 @@ public class HitDetector : MonoBehaviour
         // 🥫 CAN (ONLY HERE)
         if (other.CompareTag("Can"))
         {
+            CanState cs = other.GetComponent<CanState>();
+
+            // ❌ skip damage if already broken
+            if (cs != null && cs.isBroken)
+                return;
+
             PlayImpactSound(canHitClip);
 
             float duration = SpawnImpactParticle(hitPoint, impactDir);
@@ -54,7 +60,6 @@ public class HitDetector : MonoBehaviour
                 rb.AddForce(impactDir * 5f, ForceMode.Impulse);
             }
 
-            // 🔥 Disable after particle
             StartCoroutine(DisableAfterEffect(other.gameObject, duration));
             return;
         }
@@ -113,5 +118,6 @@ public class HitDetector : MonoBehaviour
 
         impactAudio.pitch = Random.Range(0.9f, 1.1f);
         impactAudio.PlayOneShot(clip);
+        Destroy(impactAudio);
     }
 }

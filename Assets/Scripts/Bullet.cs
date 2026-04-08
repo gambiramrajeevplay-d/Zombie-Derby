@@ -61,6 +61,10 @@ public class Bullet : MonoBehaviour
         // 🥫 CAN (ONLY HERE WE SPAWN PARTICLES + SOUND)
         if (hitObj.CompareTag("Can"))
         {
+            CanState cs = hitObj.GetComponent<CanState>();
+            if (cs != null)
+                cs.isBroken = true; // ✅ mark as broken
+
             float duration = SpawnCanParticle(hitPoint, dir);
             PlaySound(canHitClip);
 

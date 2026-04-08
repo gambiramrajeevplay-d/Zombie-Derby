@@ -16,7 +16,7 @@ public class SimpleCarController : MonoBehaviour
     public Transform rearRightModel;
 
     [Header("Movement")]
-    public float motorTorque = 3500f;
+    public float motorTorque = 500f;
     public float maxSpeed = 120f;
     public float brakeForce = 4500f;
 
@@ -80,6 +80,7 @@ public class SimpleCarController : MonoBehaviour
 
     public float minVolume = 0.2f;
     public float maxVolume = 1f;
+    float currentEngineForce = 0f;
     void Start()
     {
         CreateEngineAudio();
@@ -89,15 +90,17 @@ public class SimpleCarController : MonoBehaviour
         rb.centerOfMass = new Vector3(0, -0.8f, 0);
         rb.mass = 350f;
 
-        rb.drag = 0.02f;
+        rb.drag = 0.1f;
         rb.angularDrag = 0.5f;
 
         rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-        lockedForward = transform.forward;
+        lockedForward = -Vector3.right; // ALWAYS move in -X
 
         rb.solverIterations = 10;
         rb.solverVelocityIterations = 10;
+
+
 
         SetAllWheelFriction();
     }
@@ -108,10 +111,23 @@ public class SimpleCarController : MonoBehaviour
         forwardInput = Input.GetAxis("Vertical"); // ONLY forward/back
         horizontalInput = 0f; // ❌ disable steering
         isBraking = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+
+        if (Mathf.Abs(forwardInput) > 0.1f)
+        {
+            GameManager.Instance.ResetInputTimer();
+        }
+
     }
 
     void FixedUpdate()
     {
+        // ✅ allow X (pitch) + Z (roll), control Y only
+        rb.angularVelocity = new Vector3(
+            rb.angularVelocity.x * 0.98f,
+            rb.angularVelocity.y * 0.5f,
+            rb.angularVelocity.z * 0.98f
+        );
+
         if (canControl)
             HandleInput();
         else
@@ -123,34 +139,38 @@ public class SimpleCarController : MonoBehaviour
 
         if (grounded)
         {
-            // 🔥 LANDING RESET (unchanged logic)
+            // 🔥 small downward stick (prevents bounce)
+            if (landingTimer <= 0f) // only after landing settles
+            {
+                rb.AddForce(Vector3.down * 2f, ForceMode.Acceleration);
+            }
             if (wasInAir)
             {
                 landingTimer = landingSmoothingTime;
                 wasInAir = false;
             }
 
-            // 🔥🔥🔥 GROUND NORMAL DETECTION (NEW)
             RaycastHit hit;
-            Vector3 groundNormal = Vector3.up;
 
             if (Physics.Raycast(transform.position, Vector3.down, out hit, 2f))
             {
-                groundNormal = hit.normal;
+                // 🔥 align car to slope (X rotation)
+                Vector3 targetUp = hit.normal;
+                Quaternion targetRot = Quaternion.FromToRotation(transform.up, targetUp) * transform.rotation;
 
-                // 🔥 SOFT ALIGNMENT (NO HARD SNAP)
-              
-                Vector3 projected = Vector3.ProjectOnPlane(rb.velocity, groundNormal);
+                // 🔥 slower + smoother alignment (prevents shaking)
+                // 🔥 ONLY align AFTER landing settles
+                if (landingTimer <= 0f)
+                {
+                    float alignSpeed = 2f; // slower = smoother
 
-                // 🔥 softer blending
-                rb.velocity = Vector3.Lerp(rb.velocity, projected, Time.fixedDeltaTime * 6f);
+                    transform.rotation = Quaternion.Slerp(
+                        transform.rotation,
+                        targetRot,
+                        Time.fixedDeltaTime * alignSpeed
+                    );
+                }
             }
-
-            // 🔥 REDUCED STICK FORCE (NO SHAKING)
-          float speedFactor = Mathf.Clamp01(rb.velocity.magnitude / 10f);
-float stickForce = Mathf.Lerp(2f, 10f, speedFactor);
-
-rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
 
             HandleLandingSmoothing();
             StabilizeCar();
@@ -163,7 +183,7 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
         }
     }
 
-   
+
     void CreateEngineAudio()
     {
         GameObject engineObj = new GameObject("EngineAudio");
@@ -225,91 +245,56 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
         if (Mathf.Abs(forwardInput) > 0.01f || Mathf.Abs(horizontalInput) > 0.01f || isBraking)
             idleTimer = 0f;
 
-        // 🔥 ADVANCED SLOPE SYSTEM
-        float slopeBoost = 1f;
-
+        // 🔥 SLOPE BASED MOVEMENT (FIXED)
         RaycastHit hit;
+        Vector3 moveDir = lockedForward;
+
+        float slopeBoost = 1.2f;
+
         if (Physics.Raycast(transform.position, Vector3.down, out hit, 2f))
         {
+            // Project forward direction onto slope
+            moveDir = Vector3.ProjectOnPlane(lockedForward, hit.normal).normalized;
+
             float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
 
-            if (slopeAngle > 5f)
-            {
-                float slopeFactor = Mathf.InverseLerp(0f, 45f, slopeAngle);
-
-                // 🔥 smooth uphill slowdown
-                slopeBoost = Mathf.Lerp(1f, 0.7f, slopeFactor);
-            }
+            // More boost on steep slopes
+            slopeBoost = Mathf.Lerp(1f, 1.8f, slopeAngle / 45f);
         }
-        // 🔥🔥🔥 UPDATED TORQUE SYSTEM (SMOOTH ENGINE FEEL)
+
+        // 🔥 APPLY FORCE INSTEAD OF ONLY TORQUE
         if (forwardInput > 0.01f)
         {
-            float speedNormalized = Mathf.Clamp01(speed / (maxSpeed / 3.6f));
+            float targetForce = motorTorque * slopeBoost * forwardInput;
 
-            // 🔥 smoother acceleration curve
-            float torqueCurve = Mathf.Pow(1f - speedNormalized, 1.5f);
+            float accelRate = rb.velocity.magnitude < 2f ? 8f : 3f;
 
-            float targetTorque = forwardInput * motorTorque * slopeBoost * torqueCurve;
+            currentEngineForce = Mathf.Lerp(currentEngineForce, targetForce, Time.fixedDeltaTime * accelRate);
 
-            // 🔥 engine inertia (very important)
-            float accelerationSpeed = 5f;
+            float minForce = 50f;
+            float finalForce = Mathf.Max(currentEngineForce, minForce);
 
-            rearLeftWheel.motorTorque = Mathf.Lerp(rearLeftWheel.motorTorque, targetTorque, Time.fixedDeltaTime * accelerationSpeed);
-            rearRightWheel.motorTorque = Mathf.Lerp(rearRightWheel.motorTorque, targetTorque, Time.fixedDeltaTime * accelerationSpeed);
+            rb.AddForce(moveDir * finalForce, ForceMode.Force);
+
+            rearLeftWheel.motorTorque = motorTorque * forwardInput;
+            rearRightWheel.motorTorque = motorTorque * forwardInput;
+
+            // 🔥 IMPORTANT
+            rearLeftWheel.brakeTorque = 0f;
+            rearRightWheel.brakeTorque = 0f;
         }
-        else
-        {
-            // 🔥 smooth torque drop (no instant stop)
-            rearLeftWheel.motorTorque = Mathf.Lerp(rearLeftWheel.motorTorque, 0f, Time.fixedDeltaTime * 2f);
-            rearRightWheel.motorTorque = Mathf.Lerp(rearRightWheel.motorTorque, 0f, Time.fixedDeltaTime * 2f);
-        }
-
-        // 🔥🔥🔥 IMPROVED BRAKE FEEL
+        // 🔥 BRAKE SYSTEM (FIXED)
         if (isBraking && IsGrounded())
         {
-            float brake = brakeForce * Mathf.Clamp01(speed / 10f); // 🔥 changed
+            rearLeftWheel.brakeTorque = brakeForce;
+            rearRightWheel.brakeTorque = brakeForce;
 
-            rearLeftWheel.brakeTorque = brake;
-            rearRightWheel.brakeTorque = brake;
+            // extra slowdown
+            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * 3f);
 
-            rb.drag = brakeDrag;
-            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * brakeSharpness);
+            // cancel engine force while braking
+            currentEngineForce = 0f;
         }
-        else if (forwardInput <= 0.01f)
-        {
-            idleTimer += Time.fixedDeltaTime;
-
-            if (idleTimer >= idleBrakeDelay)
-            {
-                rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, Time.fixedDeltaTime * idleBrakeSharpness);
-
-                rearLeftWheel.brakeTorque = brakeForce * 0.5f;
-                rearRightWheel.brakeTorque = brakeForce * 0.5f;
-
-                rb.drag = 0.1f;
-            }
-            else
-            {
-                rearLeftWheel.brakeTorque = 0;
-                rearRightWheel.brakeTorque = 0;
-                rb.drag = 0.02f;
-            }
-        }
-        else
-        {
-            rearLeftWheel.brakeTorque = 0;
-            rearRightWheel.brakeTorque = 0;
-            rb.drag = 0.02f;
-        }
-
-        // 🔥🔥🔥 NATURAL ROLLING RESISTANCE (NEW)
-        if (!isBraking && Mathf.Abs(forwardInput) < 0.1f)
-        {
-            rb.velocity *= 0.995f;
-        }
-
-       
-
         // 🔥 existing speed limit (unchanged)
         float currentSpeedKmh = rb.velocity.magnitude * 3.6f;
 
@@ -322,9 +307,11 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
             );
         }
         // 🔥 lock sideways movement
-        Vector3 localVel = transform.InverseTransformDirection(rb.velocity);
-        localVel.x = 0f;
-        rb.velocity = transform.TransformDirection(localVel);
+        //Vector3 localVel = transform.InverseTransformDirection(rb.velocity);
+        //localVel.x = 0f;
+        //rb.velocity = transform.TransformDirection(localVel);
+
+        
 
         // 🔥 keep facing forward
         Quaternion targetRotation = Quaternion.LookRotation(lockedForward, Vector3.up);
@@ -335,8 +322,43 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
         frontRightWheel.steerAngle = 0f;
     }
 
-    void HandleAirPhysics() { /* unchanged */ }
-    void HandleLandingSmoothing() { /* unchanged */ }
+    void HandleAirPhysics()
+    {
+        // 🔥 stronger gravity for better fall
+        rb.AddForce(Vector3.down * airGravityMultiplier, ForceMode.Acceleration);
+
+        // 🔥 forward stability (prevents backflip madness)
+        Vector3 forwardTorque = Vector3.Cross(transform.forward, Vector3.forward);
+        rb.AddTorque(forwardTorque * airForwardStability, ForceMode.Acceleration);
+
+        // 🔥 damping (smooth rotation)
+        rb.angularVelocity *= airRotationDamping;
+    }
+    void HandleLandingSmoothing()
+    {
+        if (landingTimer > 0f)
+        {
+            landingTimer -= Time.fixedDeltaTime;
+
+            // ❌ REMOVE vertical force override (causes jitter)
+            // rb.velocity = Vector3.Lerp(...)
+
+            // ✅ smooth only rotation, NOT velocity
+            rb.angularVelocity = Vector3.Lerp(
+                rb.angularVelocity,
+                Vector3.zero,
+                Time.fixedDeltaTime * 3f
+            );
+
+            // ✅ small damping instead of hard force
+            rb.drag = Mathf.Lerp(rb.drag, 0.3f, Time.fixedDeltaTime * 2f);
+        }
+        else
+        {
+            // reset drag after landing
+            rb.drag = 0.1f;
+        }
+    }
 
     bool IsGrounded()
     {
@@ -348,19 +370,21 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
 
     void StabilizeCar()
     {
+        // 🔥 reduce stabilization right after landing
+        float stabilityMultiplier = landingTimer > 0f ? 0.1f : 1f;
+
         Vector3 euler = transform.eulerAngles;
 
         float x = NormalizeAngle(euler.x);
         float z = NormalizeAngle(euler.z);
 
-        Vector3 torque = new Vector3(-x, 0f, -z) * stabilityForce;
+        Vector3 torque = new Vector3(-x, 0f, -z) * stabilityForce * stabilityMultiplier;
 
         rb.AddRelativeTorque(torque, ForceMode.Acceleration);
 
         if (rb.velocity.magnitude > 1f)
             rb.angularVelocity *= 0.98f;
     }
-
     float NormalizeAngle(float angle)
     {
         if (angle > 180f)
@@ -401,11 +425,11 @@ rb.AddForce(-groundNormal * stickForce, ForceMode.Acceleration);
     void SetWheelFriction(WheelCollider wheel)
     {
         WheelFrictionCurve forward = wheel.forwardFriction;
-        forward.stiffness = 3.5f;
+        forward.stiffness = 2.2f;
         wheel.forwardFriction = forward;
 
         WheelFrictionCurve sideways = wheel.sidewaysFriction;
-        sideways.stiffness = 3.0f;
+        sideways.stiffness = 2.5f;
         wheel.sidewaysFriction = sideways;
     }
 

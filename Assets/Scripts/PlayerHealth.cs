@@ -115,5 +115,7 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         Debug.Log("Player Died!");
+
+        GameManager.Instance.PlayerDied();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class GameManager : MonoBehaviour
     public GameObject passPanel;
 
     [Header("Level")]
-    public GameObject levelRoot; // 👈 assign your full level parent
+    public GameObject levelRoot;
 
     void Awake()
     {
@@ -25,7 +26,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         ResetInputTimer();
-        Time.timeScale = 1f; // reset if restarted
+        Time.timeScale = 1f;
     }
 
     void Update()
@@ -60,7 +61,6 @@ public class GameManager : MonoBehaviour
     public void PlayerDied()
     {
         if (levelEnded) return;
-
         LevelFail("Player Dead!");
     }
 
@@ -69,7 +69,6 @@ public class GameManager : MonoBehaviour
         if (levelEnded) return;
 
         levelEnded = true;
-
         Time.timeScale = 0f;
 
         if (levelRoot != null)
@@ -84,7 +83,6 @@ public class GameManager : MonoBehaviour
         if (levelEnded) return;
 
         levelEnded = true;
-
         Time.timeScale = 0f;
 
         if (levelRoot != null)
@@ -94,5 +92,20 @@ public class GameManager : MonoBehaviour
             failPanel.SetActive(true);
 
         Debug.Log("LEVEL FAILED: " + reason);
+    }
+
+    // 🔄 RESTART FUNCTION
+    public void RestartLevel()
+    {
+        Time.timeScale = 1f; // 🔥 IMPORTANT
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.buildIndex);
+    }
+
+    public void Home()
+    {
+        Time.timeScale = 1f; // 🔥 reset time
+        SceneManager.LoadScene("UI_Dummy");
     }
 }

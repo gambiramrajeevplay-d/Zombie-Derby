@@ -5,7 +5,13 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 0
+    path: Assets/Scenes/UI_Dummy.unity
+    guid: e35c90552c8638843b773c952ecca96b
+  - enabled: 0
+    path: Assets/Scenes/Bharath_Levels 1.unity
+    guid: 75a7e76246dab0546bead2e3484d165a
   - enabled: 1
-    path: Assets/Scenes/Rajeev.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
+    path: Assets/Scenes/Rajeev_1.unity
+    guid: 6ab39086e9316c5418bd7713ffa91b7c
   m_configObjects: {}

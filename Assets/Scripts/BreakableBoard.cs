@@ -14,17 +14,21 @@ public class BreakableBoard : MonoBehaviour
     [Header("Pieces (Pre-fractured wall parts)")]
     [SerializeField] private Rigidbody[] pieces;
 
-    [Header("Tear Forces")]
-    [SerializeField] private float pushForce = 2.5f;
-    [SerializeField] private float upwardForce = 1.2f;
-    [SerializeField] private float randomTorque = 3f;
+    [Header("💥 Explosion Settings")]
+    [SerializeField] private float explosionForce = 12f;
+    [SerializeField] private float explosionRadius = 3f;
+    [SerializeField] private float upwardModifier = 1.5f;
+
+    [Header("Extra Randomness")]
+    [SerializeField] private float randomForce = 2f;
+    [SerializeField] private float randomTorque = 4f;
 
     [Header("Disable On Break")]
     [SerializeField] private Collider[] collidersToDisable;
 
     [Header("Audio")]
-    public AudioSource breakAudioSource;      // 🔊 Assign in Inspector
-    public AudioClip breakClip;               // 🔊 Optional (recommended)
+  
+    public AudioClip breakClip;
 
     // 🔹 BACKWARD COMPATIBILITY
     public void RegisterBulletHit()
@@ -42,26 +46,16 @@ public class BreakableBoard : MonoBehaviour
         {
             broken = true;
 
-            PlayBreakSound();     // 🔥 PLAY AUDIO
+            PlayBreakSound();
             DisableColliders();
-            BreakWall(hitPoint, hitDirection);
+            Explode(hitPoint, hitDirection);
 
             StartCoroutine(DestroyAfterDelay());
         }
     }
 
-    // 🔊 One-shot audio
-    private void PlayBreakSound()
-    {
-        if (breakAudioSource == null) return;
-
-        if (breakClip != null)
-            breakAudioSource.PlayOneShot(breakClip);
-        else
-            breakAudioSource.Play(); // if clip already set on AudioSource
-    }
-
-    private void BreakWall(Vector3 hitPoint, Vector3 hitDirection)
+    // 💥 EXPLOSION LOGIC
+    private void Explode(Vector3 hitPoint, Vector3 hitDirection)
     {
         foreach (Rigidbody rb in pieces)
         {
@@ -70,10 +64,19 @@ public class BreakableBoard : MonoBehaviour
             rb.isKinematic = false;
             rb.useGravity = true;
 
-            Vector3 dirFromHit = (rb.worldCenterOfMass - hitPoint).normalized;
+            // 💥 REAL EXPLOSION FORCE
+            rb.AddExplosionForce(
+                explosionForce,
+                hitPoint,              // explosion center
+                explosionRadius,
+                upwardModifier,
+                ForceMode.Impulse
+            );
 
-            rb.AddForce((dirFromHit + hitDirection) * pushForce, ForceMode.Impulse);
-            rb.AddForce(Vector3.up * upwardForce, ForceMode.Impulse);
+            // 🔥 EXTRA PUSH (direction-based)
+            rb.AddForce(hitDirection * randomForce, ForceMode.Impulse);
+
+            // 🔄 RANDOM SPIN
             rb.AddTorque(Random.insideUnitSphere * randomTorque, ForceMode.Impulse);
         }
     }
@@ -87,11 +90,29 @@ public class BreakableBoard : MonoBehaviour
         }
     }
 
+    private void PlayBreakSound()
+    {
+        if (breakClip == null) return;
+
+        // 🎧 Create temp audio object
+        GameObject audioObj = new GameObject("BreakSound");
+        audioObj.transform.position = transform.position;
+
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+
+        // 🔊 3D sound settings
+        source.spatialBlend = 1f;
+        source.playOnAwake = false;
+        source.pitch = Random.Range(0.9f, 1.1f);
+
+        source.PlayOneShot(breakClip);
+
+        // 🧹 Destroy after sound ends
+        Destroy(audioObj, breakClip.length);
+    }
     IEnumerator DestroyAfterDelay()
     {
         yield return new WaitForSeconds(destroyDelay);
         Destroy(gameObject);
     }
 }
-
-

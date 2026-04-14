@@ -29,6 +29,15 @@ public class HitDetector : MonoBehaviour
         Vector3 impactDir = playerRb.velocity.normalized;
         Vector3 hitPoint = other.ClosestPoint(transform.position);
 
+        // 💥 BREAKABLE
+        BreakableBoard breakable = other.GetComponentInParent<BreakableBoard>();
+        if (breakable != null)
+        {
+            if (speed >= minBreakSpeed)
+            {
+                breakable.RegisterBulletHit(hitPoint, impactDir);
+            }
+        }
         // 🧟 ZOMBIE
         if (other.CompareTag("Zombie"))
         {

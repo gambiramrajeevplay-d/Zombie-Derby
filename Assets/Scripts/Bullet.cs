@@ -15,7 +15,13 @@ public class Bullet : MonoBehaviour
     public ParticleSystem canHitParticle;
 
     private AudioSource impactAudio;
+
     Transform target;
+    CarShooter shooter;
+
+    // 🔥 NEW (direction lock like Zombie Derby)
+    Vector3 shootDirection;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -24,34 +30,48 @@ public class Bullet : MonoBehaviour
         if (rb != null)
         {
             rb.useGravity = false;
-            rb.velocity = -Vector3.right * speed;
-
             rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            //    rb.constraints = RigidbodyConstraints.FreezePositionY |
-            //                     RigidbodyConstraints.FreezePositionZ |
-            //                     RigidbodyConstraints.FreezeRotation;
+            if (target != null)
+            {
+                // 🎯 SHOOT TOWARD TARGET (LEFT/RIGHT WORKS HERE)
+                shootDirection = (target.position - transform.position).normalized;
+            }
+            else
+            {
+                // 🔥 ALWAYS WORLD LEFT (-X)
+                shootDirection = Vector3.left;
+            }
+
+            rb.velocity = shootDirection * speed;
         }
-        //if (target != null)
-        //{
-        //    //Vector3 dir = (target.position - transform.position).normalized;
-        //    //rb.velocity = dir * speed;
-        //}
-        //else
-        //{
-        //    rb.velocity = transform.forward * speed;
-        //}
+
         Destroy(gameObject, lifeTime);
+    }
+
+    void FixedUpdate()
+    {
+        if (rb == null) return;
+
+        // 🔥 ONLY assist if target exists
+        if (target != null)
+        {
+            Vector3 dir = (target.position - transform.position).normalized;
+
+            // small correction only
+            shootDirection = Vector3.Lerp(shootDirection, dir, 0.05f);
+            rb.velocity = shootDirection * speed;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         GameObject hitObj = collision.gameObject;
 
-        
-
         Vector3 hitPoint = collision.contacts[0].point;
-        Vector3 dir = -Vector3.right;
+
+        // 🔥 USE CURRENT VELOCITY DIRECTION (IMPORTANT)
+        Vector3 dir = rb.velocity.normalized;
 
         // 💥 BREAKABLE OBJECT
         BreakableBoard breakable = hitObj.GetComponentInParent<BreakableBoard>();
@@ -67,12 +87,12 @@ public class Bullet : MonoBehaviour
             zb.Break(hitPoint, dir);
         }
 
-        // 🥫 CAN (ONLY HERE WE SPAWN PARTICLES + SOUND)
+        // 🥫 CAN
         if (hitObj.CompareTag("Can"))
         {
             CanState cs = hitObj.GetComponent<CanState>();
             if (cs != null)
-                cs.isBroken = true; // ✅ mark as broken
+                cs.isBroken = true;
 
             float duration = SpawnCanParticle(hitPoint, dir);
             PlaySound(canHitClip);
@@ -87,28 +107,45 @@ public class Bullet : MonoBehaviour
             hitRb.AddForce(dir * 5f, ForceMode.Impulse);
         }
 
+        // 🎯 REMOVE FROM TARGET LIST
+        if (target != null && shooter != null)
+        {
+            shooter.RemoveTarget(target);
+        }
+
         Destroy(gameObject);
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        // 👉 ONLY handle obstacles here
         if (!other.CompareTag("Obstacle")) return;
 
         Vector3 hitPoint = other.ClosestPoint(transform.position);
-        Vector3 dir = -Vector3.right;
+        Vector3 dir = rb.velocity.normalized;
 
-        // 💥 BREAKABLE
         BreakableBoard breakable = other.GetComponentInParent<BreakableBoard>();
         if (breakable != null)
         {
             breakable.RegisterBulletHit(hitPoint, dir);
         }
 
+        if (target != null && shooter != null)
+        {
+            shooter.RemoveTarget(target);
+        }
+
         Destroy(gameObject);
     }
+
+    // 🎯 SET TARGET
     public void SetTarget(Transform t)
     {
         target = t;
+    }
+
+    public void SetShooter(CarShooter s)
+    {
+        shooter = s;
     }
 
     float SpawnCanParticle(Vector3 position, Vector3 direction)
@@ -130,7 +167,6 @@ public class Bullet : MonoBehaviour
     void CreateAudio()
     {
         GameObject audioObj = new GameObject("ImpactAudio");
-        audioObj.transform.parent = null;
         audioObj.transform.position = transform.position;
 
         impactAudio = audioObj.AddComponent<AudioSource>();
@@ -147,6 +183,7 @@ public class Bullet : MonoBehaviour
 
         Destroy(impactAudio.gameObject, clip.length);
     }
+
     System.Collections.IEnumerator DisableAfterEffect(GameObject obj, float delay)
     {
         yield return new WaitForSeconds(delay);

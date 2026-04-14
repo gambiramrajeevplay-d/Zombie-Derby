@@ -2006,19 +2006,19 @@ public class RCC_CarControllerV3 : MonoBehaviour {
 		if(!useNOS)
 			return;
 
-		if(!NOSSound)
-			NOSSound = RCC_CreateAudioSource.NewAudioSource(gameObject, "NOS Sound AudioSource", 5, 10, 1f, NOSClip, true, false, false);
+		//if(!NOSSound)
+		//	NOSSound = RCC_CreateAudioSource.NewAudioSource(gameObject, "NOS Sound AudioSource", 5, 10, 1f, NOSClip, true, false, false);
 
-		if(!blowSound)
-			blowSound = RCC_CreateAudioSource.NewAudioSource(gameObject, "NOS Blow", 1, 10, 1, null, false, false, false);
+		//if(!blowSound)
+		//	blowSound = RCC_CreateAudioSource.NewAudioSource(gameObject, "NOS Blow", 1, 10, 1, null, false, false, false);
 
 		if(boostInput >= .8f && _gasInput >= .8f && NoS > 5){
 			
 			NoS -= NoSConsumption * Time.fixedDeltaTime;
 			NoSRegenerateTime = 0f;
 
-			if(!NOSSound.isPlaying)
-				NOSSound.Play();
+			//if(!NOSSound.isPlaying)
+			//	NOSSound.Play();
 			
 		}else{
 			
@@ -2027,13 +2027,13 @@ public class RCC_CarControllerV3 : MonoBehaviour {
 			
 			NoSRegenerateTime += Time.fixedDeltaTime;
 
-			if(NOSSound.isPlaying){
+			//if(NOSSound.isPlaying){
 				
-				NOSSound.Stop();
-				blowSound.clip = RCCSettings.blowoutClip[UnityEngine.Random.Range(0, RCCSettings.blowoutClip.Length)];
-				blowSound.Play();
+			//	NOSSound.Stop();
+			//	blowSound.clip = RCCSettings.blowoutClip[UnityEngine.Random.Range(0, RCCSettings.blowoutClip.Length)];
+			//	//blowSound.Play();
 
-			}
+			//}
 
 		}
 
@@ -2060,12 +2060,12 @@ public class RCC_CarControllerV3 : MonoBehaviour {
 			
 			if(turboBoost < (turboSound.volume * 30f)){
 				
-				if(!blowSound.isPlaying){
+				//if(!blowSound.isPlaying){
 					
-					blowSound.clip = RCCSettings.blowoutClip[UnityEngine.Random.Range(0, RCCSettings.blowoutClip.Length)];
-					blowSound.Play();
+				//	blowSound.clip = RCCSettings.blowoutClip[UnityEngine.Random.Range(0, RCCSettings.blowoutClip.Length)];
+				////	blowSound.Play();
 
-				}
+				//}
 
 			}
 
@@ -2145,28 +2145,28 @@ public class RCC_CarControllerV3 : MonoBehaviour {
 		
 	}
 
-    /// <summary>
-    /// Raises the collision enter event.
-    /// </summary>
-    /// <param name="collision">Collision.</param>
-    //void OnCollisionEnter(Collision collision)
-    //{
+	/// <summary>
+	/// Raises the collision enter event.
+	/// </summary>
+	/// <param name="collision">Collision.</param>
+	void OnCollisionEnter(Collision collision)
+	{
 
-    //    if (collision.contacts.Length < 1 || collision.relativeVelocity.magnitude < minimumCollisionForce)
-    //        return;
+		if (collision.contacts.Length < 1 || collision.relativeVelocity.magnitude < minimumCollisionForce)
+			return;
 
-    //    // ALWAYS play particles
-    //    if (((1 << collision.gameObject.layer) & damageFilter) != 0)
-    //    {
-    //        CollisionParticles(collision.contacts[0].point);
-    //    }
+		// ALWAYS play particles
+		if (((1 << collision.gameObject.layer) & damageFilter) != 0)
+		{
+			CollisionParticles(collision.contacts[0].point);
+		}
 
-    //}
+	}
 
-    /// <summary>
-    /// Raises the draw gizmos event.
-    /// </summary>
-    void OnDrawGizmos(){
+	/// <summary>
+	/// Raises the draw gizmos event.
+	/// </summary>
+	void OnDrawGizmos(){
 #if UNITY_EDITOR
 		if(Application.isPlaying){
 

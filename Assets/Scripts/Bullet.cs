@@ -48,8 +48,17 @@ public class Bullet : MonoBehaviour
     {
         GameObject hitObj = collision.gameObject;
 
+        
+
         Vector3 hitPoint = collision.contacts[0].point;
         Vector3 dir = -Vector3.right;
+
+        // 💥 BREAKABLE OBJECT
+        BreakableBoard breakable = hitObj.GetComponentInParent<BreakableBoard>();
+        if (breakable != null)
+        {
+            breakable.RegisterBulletHit(hitPoint, dir);
+        }
 
         // 🧟 ZOMBIE
         ZombieBreak zb = hitObj.GetComponentInParent<ZombieBreak>();
@@ -71,17 +80,28 @@ public class Bullet : MonoBehaviour
             StartCoroutine(DisableAfterEffect(hitObj, duration));
         }
 
-        // 🟫 BOX (ONLY SOUND)
-        else if (hitObj.CompareTag("Obstacle"))
-        {
-            PlaySound(boxHitClip);
-        }
-
         // 💪 FORCE
         Rigidbody hitRb = hitObj.GetComponent<Rigidbody>();
         if (hitRb != null)
         {
             hitRb.AddForce(dir * 5f, ForceMode.Impulse);
+        }
+
+        Destroy(gameObject);
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        // 👉 ONLY handle obstacles here
+        if (!other.CompareTag("Obstacle")) return;
+
+        Vector3 hitPoint = other.ClosestPoint(transform.position);
+        Vector3 dir = -Vector3.right;
+
+        // 💥 BREAKABLE
+        BreakableBoard breakable = other.GetComponentInParent<BreakableBoard>();
+        if (breakable != null)
+        {
+            breakable.RegisterBulletHit(hitPoint, dir);
         }
 
         Destroy(gameObject);

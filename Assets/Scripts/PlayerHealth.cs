@@ -39,7 +39,6 @@ public class PlayerHealth : MonoBehaviour
             healthFill = fillObj.GetComponent<Image>();
 
         // 🔍 Health Text
-        // 🔍 Health Text (TextMeshPro)
         GameObject textObj = GameObject.FindGameObjectWithTag("Health_Text");
         if (textObj != null)
             healthText = textObj.GetComponent<TextMeshProUGUI>();
@@ -49,7 +48,6 @@ public class PlayerHealth : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // ❌ Prevent multiple hits spam
         if (Time.time < lastDamageTime + damageCooldown) return;
 
         if (other.CompareTag("Obstacle"))
@@ -66,7 +64,8 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    void TakeDamage(int damage, string type)
+    // ✅ PUBLIC NOW
+    public void TakeDamage(int damage, string type)
     {
         lastDamageTime = Time.time;
 
@@ -88,34 +87,29 @@ public class PlayerHealth : MonoBehaviour
 
         // 🎨 COLOR LOGIC
         if (type == "Can")
-            floatingText.SetText("-" + damage, Color.red);        // 🔴 CAN
+            floatingText.SetText("-" + damage, Color.red);
         else if (type == "Obstacle")
-            floatingText.SetText("-" + damage, Color.yellow);     // 🟡 BOX
+            floatingText.SetText("-" + damage, Color.yellow);
+        else if (type == "Landmine") // 💥 NEW
+            floatingText.SetText("-" + damage, Color.red);
         else
-            floatingText.SetText("-" + damage, Color.white);     // 🟡 ZOMBIE
+            floatingText.SetText("-" + damage, Color.white);
     }
 
     void UpdateHealthUI()
     {
         float healthPercent = (float)currentHealth / maxHealth;
 
-        // ❤️ Fill Image
         if (healthFill != null)
-        {
             healthFill.fillAmount = healthPercent;
-        }
 
-        // 📝 Text
         if (healthText != null)
-        {
             healthText.text = currentHealth.ToString();
-        }
     }
 
     void Die()
     {
         Debug.Log("Player Died!");
-
         GameManager.Instance.PlayerDied();
     }
 }

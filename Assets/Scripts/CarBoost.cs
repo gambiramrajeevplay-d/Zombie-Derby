@@ -5,36 +5,34 @@ using System.Collections.Generic;
 public class CarBoost : MonoBehaviour
 {
     [Header("Boost Settings")]
-    public float boostMultiplier = 2f;
     public float boostDuration = 2f;
-    public float boostForce = 5000f;
+    public float extraForce = 2000f;
 
     [Header("Boost State")]
     public bool isBoosting = false;
 
     [Header("Boost VFX")]
-    public List<ParticleSystem> boostParticles; // 🔥 assign in inspector
-
-    private SimpleCarController carController;
-    private Rigidbody rb;
-
-    private float originalTorque;
-    private Coroutine boostCoroutine;
+    public List<ParticleSystem> boostParticles;
 
     [Header("Boost Sound")]
     public AudioClip boostClip;
 
     private AudioSource boostAudio;
 
+    // ✅ RCC reference
+    private RCC_CarControllerV3 car;
+
+    private Coroutine boostCoroutine;
+
+    [Header("Boost Extra Objects")]
+    public List<GameObject> boostObjects; // 🔥 assign in inspector
+
     void Start()
     {
-        carController = GetComponent<SimpleCarController>();
-        rb = GetComponent<Rigidbody>();
+        car = GetComponent<RCC_CarControllerV3>();
 
-        originalTorque = carController.motorTorque;
-
-        // 🔒 Ensure particles are OFF at start
         SetParticles(false);
+        SetBoostObjects(false);
         CreateBoostAudio();
     }
 
@@ -43,13 +41,12 @@ public class CarBoost : MonoBehaviour
         if (other.CompareTag("Boost"))
         {
             if (boostCoroutine != null)
-            {
                 StopCoroutine(boostCoroutine);
-            }
 
             boostCoroutine = StartCoroutine(Boost(other.gameObject));
         }
     }
+
     void CreateBoostAudio()
     {
         GameObject audioObj = new GameObject("BoostAudio");
@@ -57,67 +54,80 @@ public class CarBoost : MonoBehaviour
         audioObj.transform.localPosition = Vector3.zero;
 
         boostAudio = audioObj.AddComponent<AudioSource>();
-        boostAudio.spatialBlend = 1f; // 3D sound
+        boostAudio.spatialBlend = 1f;
         boostAudio.playOnAwake = false;
     }
+
     IEnumerator Boost(GameObject pickup)
     {
         isBoosting = true;
 
-        float soundDuration = 0.5f;
-
-        // 🔊 PLAY BOOST SOUND
+        // 🔊 PLAY SOUND
         if (boostAudio != null && boostClip != null)
         {
             boostAudio.pitch = Random.Range(0.95f, 1.1f);
             boostAudio.volume = 1.2f;
             boostAudio.PlayOneShot(boostClip);
-
-            soundDuration = boostClip.length;
         }
 
-        // 🔥 TURN ON PARTICLES
+        // 🔥 PARTICLES ON
         SetParticles(true);
+        SetBoostObjects(true);
 
-        // 🔥 HIDE PICKUP IMMEDIATELY (optional)
+        // 🔥 HIDE PICKUP
         pickup.SetActive(false);
 
-        // 🔥 DESTROY AFTER SOUND
-        Destroy(pickup, soundDuration);
+        // ✅ ENABLE RCC BOOST SYSTEM
+        car.useNOS = true;
+        car.useTurbo = true;
+        car.fuelInput = 1f;
 
-        // Reset torque
-        carController.motorTorque = originalTorque;
+        float timer = 0f;
 
-        // Apply boost
-        carController.motorTorque *= boostMultiplier;
+        while (timer < boostDuration)
+        {
+            // 🔥 IMPORTANT (RCC needs this)
+            car.boostInput = 1f;
+            car.gasInput = 1f;
 
-        // Forward push
-        rb.AddForce(transform.forward * boostForce, ForceMode.Impulse);
+            // 🔥 EXTRA PUSH (for game feel)
+            car.rigid.AddForce(transform.forward * extraForce, ForceMode.Acceleration);
 
-        yield return new WaitForSeconds(boostDuration);
+            timer += Time.deltaTime;
+            yield return null;
+        }
 
-        // Reset torque
-        carController.motorTorque = originalTorque;
+        // ❌ STOP BOOST
+        car.boostInput = 0f;
 
         isBoosting = false;
 
-        // 🔥 TURN OFF PARTICLES
+        // 🔥 PARTICLES OFF
         SetParticles(false);
+        SetBoostObjects(false);
 
         boostCoroutine = null;
+
+        Destroy(pickup);
     }
 
-    // 🔧 Helper method
     void SetParticles(bool state)
     {
         foreach (ParticleSystem ps in boostParticles)
         {
             if (ps == null) continue;
 
-            if (state)
-                ps.Play();
-            else
-                ps.Stop();
+            if (state) ps.Play();
+            else ps.Stop();
+        }
+    }
+    void SetBoostObjects(bool state)
+    {
+        foreach (GameObject obj in boostObjects)
+        {
+            if (obj == null) continue;
+
+            obj.SetActive(state);
         }
     }
 }

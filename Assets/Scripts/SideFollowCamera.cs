@@ -8,6 +8,7 @@ public class SideFollowCamera : MonoBehaviour
 
     [Header("Offset Settings")]
     public Vector3 offset = new Vector3(-8f, 4f, -6f);
+    private Vector3 velocity = Vector3.zero;
 
     [Header("Smooth Settings")]
     public float followSpeed = 5f;
@@ -63,29 +64,33 @@ public class SideFollowCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        // 🔥 IMPROVED FOLLOW (more stable)
+        // ✅ Stable follow using SmoothDamp (better than Lerp)
         Vector3 desiredPosition = target.position + offset;
 
         if (lockY) desiredPosition.y = initialPosition.y;
         if (lockZ) desiredPosition.z = initialPosition.z;
 
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * followSpeed);
+        transform.position = Vector3.SmoothDamp(
+            transform.position,
+            desiredPosition,
+            ref velocity,
+            0.15f // smooth time (lower = tighter)
+        );
 
-        // 🔥 LOOK AT WITH X-AXIS LOCK (no vertical tilt)
-        Vector3 direction = target.position - transform.position;
-        direction.y = 0f; // 🔥 lock X rotation
+        // ✅ Stable horizontal look (no shaking)
+        Vector3 flatTarget = target.position;
+        flatTarget.y = transform.position.y;
 
-        if (direction != Vector3.zero)
-        {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
+        Quaternion targetRotation = Quaternion.LookRotation(flatTarget - transform.position);
 
-            // 🔥 smoother rotation (no snapping)
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * followSpeed);
-        }
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            Time.deltaTime * 5f
+        );
 
         HandleFOV();
     }
-
     void HandleFOV()
     {
         if (cam == null || targetRb == null) return;

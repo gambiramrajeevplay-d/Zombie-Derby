@@ -1,6 +1,7 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 
 public class CarShooter : MonoBehaviour
 {
@@ -77,7 +78,7 @@ public class CarShooter : MonoBehaviour
         if (!canShoot) return;
 
         // 🔫 Manual shoot (UNCHANGED)
-        if (Input.GetKeyDown(KeyCode.Space))
+       if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.JoystickButton0))
         {
             TryShoot();
         }
@@ -131,54 +132,131 @@ public class CarShooter : MonoBehaviour
     //        }
     //    }
     //}
+    //    void DetectAndShoot()
+    //{
+    //    // 🔥 CORRECT FORWARD DIRECTION
+    //    Vector3 dir = firePoint.forward;
+
+    //    Ray ray = new Ray(firePoint.position, dir);
+    //    RaycastHit hit;
+
+    //    // 🔥 THICK RAY (SphereCast)
+    //    bool hasHit = Physics.SphereCast(ray, detectRadius, out hit, shootRange, targetLayers);
+
+    //    // 🔥 DEBUG (NOW POINTS CORRECTLY)
+    //    DrawSphereCast(firePoint.position, dir, detectRadius, shootRange);
+
+    //    // 🎯 AUTO AIM USING CONE
+    //    Collider[] hits = Physics.OverlapSphere(firePoint.position, shootRange, targetLayers);
+
+    //    Transform bestTarget = null;
+    //        currentTarget = null;
+
+    //        foreach (Collider col in hits)
+    //        {
+    //            if (!(col.CompareTag("Zombie") ||
+    //                  col.CompareTag("Obstacle") ||
+    //                  col.CompareTag("Can")))
+    //                continue;
+
+    //            Vector3 dirToTarget = (col.transform.position - firePoint.position).normalized;
+
+    //            float angle = Vector3.Angle(firePoint.forward, dirToTarget);
+
+    //            if (angle < 30f)
+    //            {
+    //                Debug.Log("TARGET LOCKED: " + col.name);
+
+    //                currentTarget = col.transform;
+
+    //                firePoint.rotation = Quaternion.LookRotation(dirToTarget);
+    //                break;
+    //            }
+    //        }
+    //        // 🎯 AIM
+    //        if (bestTarget != null)
+    //    {
+    //        Vector3 targetDir = (bestTarget.position - firePoint.position).normalized;
+    //        firePoint.rotation = Quaternion.LookRotation(targetDir);
+    //    }
+    //}
+
     void DetectAndShoot()
-{
-    // 🔥 CORRECT FORWARD DIRECTION
-    Vector3 dir = firePoint.forward;
+    {
+        Vector3 dir = firePoint.forward;
 
-    Ray ray = new Ray(firePoint.position, dir);
-    RaycastHit hit;
+        // 🔴 1. MAIN RAYCAST (priority target)
+        Ray ray = new Ray(firePoint.position, dir);
+        RaycastHit hit;
 
-    // 🔥 THICK RAY (SphereCast)
-    bool hasHit = Physics.SphereCast(ray, detectRadius, out hit, shootRange, targetLayers);
+        Transform bestTarget = null;
 
-    // 🔥 DEBUG (NOW POINTS CORRECTLY)
-    DrawSphereCast(firePoint.position, dir, detectRadius, shootRange);
-
-    // 🎯 AUTO AIM USING CONE
-    Collider[] hits = Physics.OverlapSphere(firePoint.position, shootRange, targetLayers);
-
-    Transform bestTarget = null;
-        currentTarget = null;
-
-        foreach (Collider col in hits)
+        if (Physics.SphereCast(ray, detectRadius, out hit, shootRange, targetLayers))
         {
-            if (!(col.CompareTag("Zombie") ||
-                  col.CompareTag("Obstacle") ||
-                  col.CompareTag("Can")))
-                continue;
+            GameObject hitObj = hit.collider.gameObject;
 
-            Vector3 dirToTarget = (col.transform.position - firePoint.position).normalized;
-
-            float angle = Vector3.Angle(firePoint.forward, dirToTarget);
-
-            if (angle < 30f)
+            if (hitObj.CompareTag("Zombie") ||
+                hitObj.CompareTag("Obstacle") ||
+                hitObj.CompareTag("Can"))
             {
-                Debug.Log("TARGET LOCKED: " + col.name);
-
-                currentTarget = col.transform;
-
-                firePoint.rotation = Quaternion.LookRotation(dirToTarget);
-                break;
+                bestTarget = hitObj.transform;
             }
         }
-        // 🎯 AIM
+
+        // 🟡 2. IF NO DIRECT HIT → USE LIST (AREA DETECTION)
+        if (bestTarget == null)
+        {
+            Collider[] hits = Physics.OverlapSphere(firePoint.position, shootRange, targetLayers);
+
+            List<Transform> detectedTargets = new List<Transform>();
+
+            foreach (Collider col in hits)
+            {
+                if (col.CompareTag("Zombie") ||
+                    col.CompareTag("Obstacle") ||
+                    col.CompareTag("Can"))
+                {
+                    Vector3 dirToTarget = (col.transform.position - firePoint.position).normalized;
+                    float angle = Vector3.Angle(dir, dirToTarget);
+
+                    if (angle < 30f) // cone check
+                    {
+                        detectedTargets.Add(col.transform);
+                    }
+                }
+            }
+
+            // 🎯 PICK CLOSEST FROM LIST
+            float closestDist = Mathf.Infinity;
+
+            foreach (Transform t in detectedTargets)
+            {
+                float dist = Vector3.Distance(firePoint.position, t.position);
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    bestTarget = t;
+                }
+            }
+        }
+
+        // 🎯 FINAL AIM
         if (bestTarget != null)
-    {
-        Vector3 targetDir = (bestTarget.position - firePoint.position).normalized;
-        firePoint.rotation = Quaternion.LookRotation(targetDir);
+        {
+            currentTarget = bestTarget;
+
+            Vector3 targetDir = (bestTarget.position - firePoint.position).normalized;
+            firePoint.rotation = Quaternion.LookRotation(targetDir);
+        }
+        else
+        {
+            currentTarget = null;
+        }
+
+        // 🔥 DEBUG DRAW
+        DrawSphereCast(firePoint.position, dir, detectRadius, shootRange);
     }
-}
     void TryShoot()
     {
         if (Time.time < lastShootTime + fireRate) return;
@@ -218,13 +296,29 @@ public class CarShooter : MonoBehaviour
     //    // 🔥 NO CHANGE to bullet direction
     //    Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
     //}
+    //void SpawnBullet()
+    //{
+    //    if (!bulletPrefab || !firePoint) return;
+
+    //    GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+
+    //    // 🎯 LOCK BULLET TO TARGET
+    //    if (currentTarget != null)
+    //    {
+    //        Bullet bulletScript = bullet.GetComponent<Bullet>();
+
+    //        if (bulletScript != null)
+    //        {
+    //            bulletScript.SetTarget(currentTarget);
+    //        }
+    //    }
+    //}
     void SpawnBullet()
     {
         if (!bulletPrefab || !firePoint) return;
 
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
-        // 🎯 LOCK BULLET TO TARGET
         if (currentTarget != null)
         {
             Bullet bulletScript = bullet.GetComponent<Bullet>();

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1247339191215203316
+--- !u!1 &8409453261345898607
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5765981385833697405}
-  - component: {fileID: 3893212324837274444}
-  - component: {fileID: 1037795092474521258}
-  - component: {fileID: 6352000391817349163}
-  - component: {fileID: 9065803982985142725}
+  - component: {fileID: 6596681130142967840}
+  - component: {fileID: 6186569578197182508}
+  - component: {fileID: 6732136138629318915}
+  - component: {fileID: 6856209321242188493}
   m_Layer: 0
-  m_Name: landmine
+  m_Name: RAMP
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &5765981385833697405
+--- !u!4 &6596681130142967840
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1247339191215203316}
+  m_GameObject: {fileID: 8409453261345898607}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -158.83, y: 2.6003041, z: -3.2546575}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalRotation: {x: -0.5, y: -0.5, z: -0.5, w: 0.5}
+  m_LocalPosition: {x: -77.97197, y: 3.364304, z: -3.2446575}
+  m_LocalScale: {x: 121.21001, y: 121.21001, z: 121.21001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &3893212324837274444
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: -90}
+--- !u!33 &6186569578197182508
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1247339191215203316}
-  m_Mesh: {fileID: 4989276599177419520, guid: 114fb959d782a8047a1c5241a5d1c5a2, type: 3}
---- !u!23 &1037795092474521258
+  m_GameObject: {fileID: 8409453261345898607}
+  m_Mesh: {fileID: -5864320914214940941, guid: 8f1257bcccd48c44f9ed809a520c9596, type: 3}
+--- !u!23 &6732136138629318915
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1247339191215203316}
+  m_GameObject: {fileID: 8409453261345898607}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -63,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0610fe562cce2dc408a6d864d06bda36, type: 2}
+  - {fileID: 2100000, guid: c66e0e40af448d24f822319efad7eea0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -85,13 +84,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &6352000391817349163
-BoxCollider:
+--- !u!64 &6856209321242188493
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1247339191215203316}
+  m_GameObject: {fileID: 8409453261345898607}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -100,24 +99,10 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.309765, y: 4.309765, z: 0.49920705}
-  m_Center: {x: 0.000030636787, y: 0.0000007860362, z: -0.12804767}
---- !u!114 &9065803982985142725
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1247339191215203316}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bace123948689cf48bae7b332041bfea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  damage: 30
-  meshRenderer: {fileID: 1037795092474521258}
-  explodeEffectPrefab: {fileID: 19848870, guid: a7c694f0877ea874fa57e033221095c3, type: 3}
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5864320914214940941, guid: 8f1257bcccd48c44f9ed809a520c9596, type: 3}

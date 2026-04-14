@@ -7769,7 +7769,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animatedBody: {fileID: 3490848242841276925}
-  ragdollRoot: {fileID: 0}
+  ragdollRoot: {fileID: 7611778543018944473}
   ragdollBodies:
   - {fileID: 8754352143380714281}
   - {fileID: 6443012584449108611}

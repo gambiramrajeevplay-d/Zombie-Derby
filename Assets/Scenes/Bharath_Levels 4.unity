@@ -23421,7 +23421,7 @@ Transform:
   m_GameObject: {fileID: 1491084078}
   serializedVersion: 2
   m_LocalRotation: {x: -0.00000015313309, y: 0.70710665, z: 0.00000015313304, w: 0.7071069}
-  m_LocalPosition: {x: 2.83, y: 1.47, z: -293.55}
+  m_LocalPosition: {x: 2.83, y: 1.12, z: -293.55}
   m_LocalScale: {x: -54.29838, y: -54.298367, z: -54.298367}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -26032,6 +26032,7 @@ MonoBehaviour:
   canShoot: 1
   shootClip: {fileID: 8300000, guid: 207017c579b07e142b6f7ad16dd28471, type: 3}
   detectRadius: 1.5
+  detectInterval: 0.15
 --- !u!114 &1761079345
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -93,6 +93,19 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("LEVEL FAILED: " + reason);
     }
+    public void FailLevel()
+    {
+        if (levelEnded) return;
+
+        levelEnded = true;
+
+        // Show fail UI
+        if (failPanel != null)
+            failPanel.SetActive(true);
+
+        // Disable player control (optional)
+        Time.timeScale = 0f;
+    }
 
     // 🔄 RESTART FUNCTION
     public void RestartLevel()

@@ -859,16 +859,18 @@ public class RCC_Customization : MonoBehaviour {
 
 	}
 
-	public static bool CheckVehicle(RCC_CarControllerV3 vehicle){
+	public static bool CheckVehicle(RCC_CarControllerV3 vehicle)
+	{
 
-		if (!vehicle) {
+		if (!vehicle)
+		{
 
-			Debug.LogError ("Vehicle is missing!");
+			//Debug.LogError("Vehicle is missing!");
 			return false;
 
 		}
 
-		return true;
+		return false;
 
 	}
 

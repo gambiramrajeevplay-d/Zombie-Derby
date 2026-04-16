@@ -5629,10 +5629,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   currentHealth: 0
-  obstacleDamage: 5
+  obstacleDamage: 1
   zombieDamage: 3
-  canDamage: 15
-  damageCooldown: 1
+  canDamage: 5
+  damageCooldown: 0
 --- !u!114 &2124894592803695492
 MonoBehaviour:
   m_ObjectHideFlags: 0

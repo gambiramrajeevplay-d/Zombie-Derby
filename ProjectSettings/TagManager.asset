@@ -15,6 +15,9 @@ TagManager:
   - ammo count
   - Health_Text
   - Health_Fill
+  - Health+50
+  - ZombieHeath
+  - CanHealth
   layers:
   - Default
   - TransparentFX

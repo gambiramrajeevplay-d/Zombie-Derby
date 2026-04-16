@@ -17,7 +17,8 @@ TagManager:
   - Health_Fill
   - Health+50
   - ZombieHeath
-  - CanHealth
+  - Giveborder
+  - border
   layers:
   - Default
   - TransparentFX

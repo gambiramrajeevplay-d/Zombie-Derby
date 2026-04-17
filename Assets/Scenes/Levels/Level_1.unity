@@ -38539,6 +38539,14 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 364219626}
+    - target: {fileID: 2527171305574244865, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: Home
+      objectReference: {fileID: 0}
+    - target: {fileID: 2527171305574244865, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 2794547761560427225, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
       propertyPath: LevelObject
       value: 
@@ -38547,14 +38555,18 @@ PrefabInstance:
       propertyPath: PauseButton
       value: 
       objectReference: {fileID: 1009116226}
-    - target: {fileID: 4529526976315154660, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
-      propertyPath: defaultButton
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 6744110082829148313, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 364219626}
+    - target: {fileID: 7280650856976098669, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7469832203752680859, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8130903399062220699, guid: 5d201e6b8692b444babe84c561fa9dd4, type: 3}
       propertyPath: m_Name
       value: UI_LevelPass/Fail/Pause

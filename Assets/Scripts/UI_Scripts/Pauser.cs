@@ -24,6 +24,9 @@ public class Pauser : MonoBehaviour
     {
         instance = this;
         AudioManagerPause.Initialize();
+
+        // 🔥 Sync volume on start
+        AudioListener.volume = AudioManagerPause.IsMuted ? 0f : 1f;
     }
 
     private void OnEnable()
@@ -59,21 +62,21 @@ public class Pauser : MonoBehaviour
     {
         if (PauseLocked) return;
 
-        LevelObject.SetActive(false);
         PausePannel.SetActive(true);
+        LevelObject.SetActive(false);
 
         if (!AndroidTV.IsAndroidOrFireTv())
             PauseButton.SetActive(false);
 
         Time.timeScale = 0f;
 
-        UpdateSoundIcon(); // 🔥 refresh icon on open
+        UpdateSoundIcon();
     }
 
     public void Resume()
     {
-        LevelObject.SetActive(true);
         PausePannel.SetActive(false);
+        LevelObject.SetActive(true);
 
         if (!AndroidTV.IsAndroidOrFireTv())
             PauseButton.SetActive(true);
@@ -83,7 +86,9 @@ public class Pauser : MonoBehaviour
 
     public void MM()
     {
-        Time.timeScale = 1f;
+        Time.timeScale = 1f;   // 🔥 MUST RESET FIRST
+        PauseLocked = false;   // 🔥 reset lock
+
         SceneManager.LoadScene("UI");
     }
 
@@ -91,9 +96,12 @@ public class Pauser : MonoBehaviour
     public void ToggleSound()
     {
         AudioManagerPause.IsMuted = !AudioManagerPause.IsMuted;
+
+        // 🔥 ACTUAL AUDIO CONTROL
+        AudioListener.volume = AudioManagerPause.IsMuted ? 0f : 1f;
+
         UpdateSoundIcon();
     }
-
     // 🔊 UPDATE ICON (same as MainMenu)
     private void UpdateSoundIcon()
     {

@@ -23043,7 +23043,7 @@ MonoBehaviour:
   unlockFullGamePanel: {fileID: 1094987347}
   unlockFullGamePanelCloseButton: {fileID: 1944670173}
   horseSelectionMenu: {fileID: 442046950}
-  forceUnlockAllLevels: 1
+  forceUnlockAllLevels: 0
   currencyText: {fileID: 1453844365}
 --- !u!1 &1228792018
 GameObject:
@@ -36058,7 +36058,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -3586.2676, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.000061035156}
   m_SizeDelta: {x: 3586.2676, y: 0.000061035}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1785843645

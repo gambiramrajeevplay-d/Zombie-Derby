@@ -21,6 +21,7 @@ TagManager:
   - border
   - CanHealth
   - UISound
+  - Music
   layers:
   - Default
   - TransparentFX

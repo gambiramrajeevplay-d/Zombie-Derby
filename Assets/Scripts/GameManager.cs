@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
     [Header("Currency")]
     public int levelReward = 100;
     public TextMeshProUGUI coinText; // 💰 assign in inspector
-
+    private AudioSource musicAudio;
     void Awake()
     {
         Instance = this;
@@ -44,9 +44,14 @@ public class GameManager : MonoBehaviour
         {
             uiAudio = soundObj.GetComponent<AudioSource>();
         }
-
+        // 🎵 Get Music Audio
+        GameObject musicObj = GameObject.FindGameObjectWithTag("Music");
+        if (musicObj != null)
+        {
+            musicAudio = musicObj.GetComponent<AudioSource>();
+        }
         // 💰 Initialize coin UI
-     
+
         UpdateCoinUI();
     }
 
@@ -88,6 +93,12 @@ public class GameManager : MonoBehaviour
     // ✅ LEVEL PASS
     public void LevelPass()
     {
+        // 🔇 Stop music
+        if (musicAudio != null)
+        {
+            musicAudio.Stop();
+        }
+
         if (levelEnded) return;
 
         levelEnded = true;
@@ -129,6 +140,11 @@ public class GameManager : MonoBehaviour
     // ❌ LEVEL FAIL
     public void LevelFail(string reason)
     {
+        if (musicAudio != null)
+        {
+            musicAudio.Stop();
+        }
+
         if (levelEnded) return;
 
         levelEnded = true;

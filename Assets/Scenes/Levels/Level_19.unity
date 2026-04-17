@@ -83092,6 +83092,10 @@ MonoBehaviour:
   failPanel: {fileID: 704782409}
   passPanel: {fileID: 1243071867}
   levelRoot: {fileID: 0}
+  failClip: {fileID: 0}
+  passClip: {fileID: 0}
+  levelReward: 100
+  coinText: {fileID: 0}
 --- !u!4 &1549604665
 Transform:
   m_ObjectHideFlags: 0
@@ -113717,7 +113721,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 5371574775534002176, guid: abb9a4146ef8ae848a5bae2d95ceaf00, type: 3}
 --- !u!23 &2118920699

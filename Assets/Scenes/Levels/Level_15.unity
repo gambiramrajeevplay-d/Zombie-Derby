@@ -34130,7 +34130,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: 0, y: -1, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -0.010601584, y: -0.0063547064, z: 0.0007989991}
+  m_ConnectedAnchor: {x: -0.010601587, y: -0.0063547064, z: 0.0007989991}
   serializedVersion: 2
   m_SwingAxis: {x: 0, y: 0, z: -1}
   m_TwistLimitSpring:
@@ -83092,6 +83092,10 @@ MonoBehaviour:
   failPanel: {fileID: 704782409}
   passPanel: {fileID: 1243071867}
   levelRoot: {fileID: 0}
+  failClip: {fileID: 0}
+  passClip: {fileID: 0}
+  levelReward: 100
+  coinText: {fileID: 0}
 --- !u!4 &1549604665
 Transform:
   m_ObjectHideFlags: 0
@@ -98233,7 +98237,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: 0, y: 0, z: 1}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -0.0000002607703, y: 0.21994253, z: 0.00000005215407}
+  m_ConnectedAnchor: {x: -0.00000016391276, y: 0.21994275, z: 0.0000000074505815}
   serializedVersion: 2
   m_SwingAxis: {x: -1, y: 0, z: 0}
   m_TwistLimitSpring:
@@ -107809,7 +107813,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: 0, y: -1, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0.008002416, y: -0.0065999697, z: -0.00094405276}
+  m_ConnectedAnchor: {x: 0.008002418, y: -0.0065999697, z: -0.00094405276}
   serializedVersion: 2
   m_SwingAxis: {x: 0, y: 0, z: -1}
   m_TwistLimitSpring:
@@ -113717,7 +113721,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 5371574775534002176, guid: abb9a4146ef8ae848a5bae2d95ceaf00, type: 3}
 --- !u!23 &2118920699

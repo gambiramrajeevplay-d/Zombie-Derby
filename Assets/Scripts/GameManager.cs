@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
         }
 
         // 💰 Initialize coin UI
+     
         UpdateCoinUI();
     }
 
@@ -106,16 +107,21 @@ public class GameManager : MonoBehaviour
         if (CurrecnyManager.instance != null)
         {
             CurrecnyManager.instance.AddCurrency(levelReward);
-            UpdateCoinUI();
+
+            // 🔥 Show reward ONLY
+            if (coinText != null)
+            {
+                coinText.text = "+" + levelReward.ToString();
+            }
         }
 
         // 🔓 UNLOCK NEXT LEVEL
-        int currentLevel = PlayerPrefs.GetInt("playerLevel", 1);
+        int currentLevel = PlayerPrefs.GetInt(StringsData.playerLevel, 1);
         int buildIndex = SceneManager.GetActiveScene().buildIndex;
 
         if (currentLevel <= buildIndex)
         {
-            PlayerPrefs.SetInt("playerLevel", currentLevel + 1);
+            PlayerPrefs.SetInt(StringsData.playerLevel, currentLevel + 1);
             PlayerPrefs.Save();
         }
     }
@@ -176,6 +182,11 @@ public class GameManager : MonoBehaviour
     public void Home()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("UI");
+
+        // 🔥 Tell MainMenu to open subscription panel
+        PlayerPrefs.SetInt("ShowSubscriptionPanel", 1);
+        PlayerPrefs.Save();
+
+        SceneManager.LoadScene("UI"); // or your main menu scene
     }
 }

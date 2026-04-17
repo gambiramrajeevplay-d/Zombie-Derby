@@ -19,6 +19,8 @@ TagManager:
   - ZombieHeath
   - Giveborder
   - border
+  - CanHealth
+  - UISound
   layers:
   - Default
   - TransparentFX

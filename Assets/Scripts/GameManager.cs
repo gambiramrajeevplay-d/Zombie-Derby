@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +19,15 @@ public class GameManager : MonoBehaviour
     [Header("Level")]
     public GameObject levelRoot;
 
+    [Header("UI Sounds")]
+    public AudioClip failClip;
+    public AudioClip passClip;
+    private AudioSource uiAudio;
+
+    [Header("Currency")]
+    public int levelReward = 100;
+    public TextMeshProUGUI coinText; // 💰 assign in inspector
+
     void Awake()
     {
         Instance = this;
@@ -27,6 +37,16 @@ public class GameManager : MonoBehaviour
     {
         ResetInputTimer();
         Time.timeScale = 1f;
+
+        // 🔊 Get UI Audio
+        GameObject soundObj = GameObject.FindGameObjectWithTag("UISound");
+        if (soundObj != null)
+        {
+            uiAudio = soundObj.GetComponent<AudioSource>();
+        }
+
+        // 💰 Initialize coin UI
+        UpdateCoinUI();
     }
 
     void Update()
@@ -64,6 +84,7 @@ public class GameManager : MonoBehaviour
         LevelFail("Player Dead!");
     }
 
+    // ✅ LEVEL PASS
     public void LevelPass()
     {
         if (levelEnded) return;
@@ -76,8 +97,30 @@ public class GameManager : MonoBehaviour
 
         if (passPanel != null)
             passPanel.SetActive(true);
+
+        // 🔊 Sound
+        if (uiAudio != null && passClip != null)
+            uiAudio.PlayOneShot(passClip);
+
+        // 💰 GIVE COINS
+        if (CurrecnyManager.instance != null)
+        {
+            CurrecnyManager.instance.AddCurrency(levelReward);
+            UpdateCoinUI();
+        }
+
+        // 🔓 UNLOCK NEXT LEVEL
+        int currentLevel = PlayerPrefs.GetInt("playerLevel", 1);
+        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+
+        if (currentLevel <= buildIndex)
+        {
+            PlayerPrefs.SetInt("playerLevel", currentLevel + 1);
+            PlayerPrefs.Save();
+        }
     }
 
+    // ❌ LEVEL FAIL
     public void LevelFail(string reason)
     {
         if (levelEnded) return;
@@ -91,34 +134,48 @@ public class GameManager : MonoBehaviour
         if (failPanel != null)
             failPanel.SetActive(true);
 
+        // 🔊 Sound
+        if (uiAudio != null && failClip != null)
+            uiAudio.PlayOneShot(failClip);
+
         Debug.Log("LEVEL FAILED: " + reason);
     }
+
     public void FailLevel()
     {
         if (levelEnded) return;
 
         levelEnded = true;
 
-        // Show fail UI
         if (failPanel != null)
             failPanel.SetActive(true);
 
-        // Disable player control (optional)
+        if (uiAudio != null && failClip != null)
+            uiAudio.PlayOneShot(failClip);
+
         Time.timeScale = 0f;
     }
 
-    // 🔄 RESTART FUNCTION
-    public void RestartLevel()
+    // 💰 UPDATE COIN UI
+    void UpdateCoinUI()
     {
-        Time.timeScale = 1f; // 🔥 IMPORTANT
-
-        Scene currentScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(currentScene.buildIndex);
+        if (coinText != null && CurrecnyManager.instance != null)
+        {
+            coinText.text = CurrecnyManager.instance.GetCurrency().ToString();
+        }
     }
 
+    // 🔄 RESTART
+    public void RestartLevel()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // 🏠 HOME
     public void Home()
     {
-        Time.timeScale = 1f; // 🔥 reset time
-        SceneManager.LoadScene("UI_Dummy");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("UI");
     }
 }

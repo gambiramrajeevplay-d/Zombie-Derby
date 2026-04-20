@@ -11,7 +11,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-//using Script;
+using Script;
 /// <summary>
 /// Receiving inputs from UI buttons, and feeds active vehicles on your scene.
 /// </summary>
@@ -134,23 +134,23 @@ public class RCC_MobileButtons : MonoBehaviour
                 Debug.Log(":iphone: Mode: Tab (Mobile Only)");
                 break;
 
-           // case ControlMode.Both:
+            case ControlMode.Both:
 
-                //if (AndroidTV.IsAndroidOrFireTv())
-                //{
-                //    // Running on TV → use Keyboard
-                //    RCCSettings.controllerType = RCC_Settings.ControllerType.Keyboard;
-                //    DisableButtons();
-                //    Debug.Log(":arrows_counterclockwise: BOTH Mode → TV detected (Keyboard)");
-                //}
-                //else
-                //{
-                //    // Running on Tablet / Phone → use Mobile
-                //    RCCSettings.controllerType = RCC_Settings.ControllerType.Mobile;
-                //    EnableButtons();
-                //    Debug.Log(":arrows_counterclockwise: BOTH Mode → Tab detected (Mobile)");
-                //}
-                //break;
+                if (AndroidTV.IsAndroidOrFireTv())
+                {
+                    // Running on TV → use Keyboard
+                    RCCSettings.controllerType = RCC_Settings.ControllerType.Keyboard;
+                    DisableButtons();
+                    Debug.Log(":arrows_counterclockwise: BOTH Mode → TV detected (Keyboard)");
+                }
+                else
+                {
+                    // Running on Tablet / Phone → use Mobile
+                    RCCSettings.controllerType = RCC_Settings.ControllerType.Mobile;
+                    EnableButtons();
+                    Debug.Log(":arrows_counterclockwise: BOTH Mode → Tab detected (Mobile)");
+                }
+                break;
         }
     }
     void DisableButtons()
@@ -238,16 +238,16 @@ public class RCC_MobileButtons : MonoBehaviour
                 if (joystick && joystick.gameObject.activeInHierarchy)
                     joystick.gameObject.SetActive(false);
 
-                if (!leftButton.gameObject.activeInHierarchy)
-                {
+                //if (!leftButton.gameObject.activeInHierarchy)
+                //{
 
-                    brakeButton.transform.position = orgBrakeButtonPos;
-                    leftButton.gameObject.SetActive(true);
+                //    brakeButton.transform.position = orgBrakeButtonPos;
+                //    leftButton.gameObject.SetActive(true);
 
-                }
+                //}
 
-                if (!rightButton.gameObject.activeInHierarchy)
-                    rightButton.gameObject.SetActive(true);
+                //if (!rightButton.gameObject.activeInHierarchy)
+                //    rightButton.gameObject.SetActive(true);
 
                 break;
 

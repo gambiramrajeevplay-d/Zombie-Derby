@@ -84,9 +84,7 @@ public class IAP_Handler : MonoBehaviour
 
     public void UnlockFullGame()
     {
-
-        //UnlockAllCharacters();
-
+        UnlockAllCars();
         UnlockAllLevels();
     }
 
@@ -119,6 +117,20 @@ public class IAP_Handler : MonoBehaviour
 
         Debug.Log("Unlocked 4 cars via IAP");
     }
+
+    public void UnlockAllCars()
+    {
+        if (CurrecnyManager.instance == null) return;
+
+        for (int i = 0; i < 9; i++) // 0 to 8 (total cars)
+        {
+            CurrecnyManager.instance.UnlockCar(i);
+        }
+
+        PlayerPrefs.Save();
+        Debug.Log("All cars unlocked via IAP");
+    }
+
     public void BuyCharacter(int _characterIndex)
     {
         PlayerPrefs.SetInt("car" + _characterIndex, 1);

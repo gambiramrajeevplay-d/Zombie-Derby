@@ -1612,7 +1612,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_13
   levelToLoad: 13
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1952914496}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -3366,7 +3366,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_8
   levelToLoad: 8
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1780469065}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -8617,7 +8617,7 @@ MonoBehaviour:
   - Inferno Carrier
   - Titan Defender
   - Iron Guardian
-  tempUnlockAllCars: 0
+  tempUnlockAllCars: 1
   presentCar: 0
 --- !u!1 &445862949
 GameObject:
@@ -14351,7 +14351,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_10
   levelToLoad: 10
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1923071015}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -15462,7 +15462,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_16
   levelToLoad: 16
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 690727179}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -18743,7 +18743,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_7
   levelToLoad: 7
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 889569454}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -20771,7 +20771,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_20
   levelToLoad: 20
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1923587096}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -22042,7 +22042,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_18
   levelToLoad: 18
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1019110464}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -27961,7 +27961,7 @@ MonoBehaviour:
   unlockFullGamePanel: {fileID: 1094987347}
   unlockFullGamePanelCloseButton: {fileID: 1944670173}
   horseSelectionMenu: {fileID: 442046950}
-  forceUnlockAllLevels: 0
+  forceUnlockAllLevels: 1
   currencyText: {fileID: 1453844365}
 --- !u!1 &1228792018
 GameObject:
@@ -29098,7 +29098,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_9
   levelToLoad: 9
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1690667526}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -29857,7 +29857,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_12
   levelToLoad: 12
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 246212890}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -31712,7 +31712,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_17
   levelToLoad: 17
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1569253803}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -33606,7 +33606,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_15
   levelToLoad: 15
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 755987755}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -37390,7 +37390,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_6
   levelToLoad: 6
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1952296023}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -46954,7 +46954,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_5
   levelToLoad: 5
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 825815851}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -48032,7 +48032,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_14
   levelToLoad: 14
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1337921755}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -51627,7 +51627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_11
   levelToLoad: 11
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 2068771237}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}
@@ -53054,7 +53054,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneNameToLoad: Level_19
   levelToLoad: 19
-  isPaidLevel: 0
+  isPaidLevel: 1
   lockImage: {fileID: 1460499653}
   levelSelectionUI: {fileID: 1224661068}
   loadingScreen: {fileID: 1306738619}

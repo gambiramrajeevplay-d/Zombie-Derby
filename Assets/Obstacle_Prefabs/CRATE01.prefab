@@ -1188,7 +1188,7 @@ MonoBehaviour:
   randomForce: 2
   randomTorque: 3
   collidersToDisable: []
-  breakClip: {fileID: 8300000, guid: 9c8a4e5c2d9d3df4584906ce72ea8ea4, type: 3}
+  breakClip: {fileID: 0}
 --- !u!65 &766976904845887891
 BoxCollider:
   m_ObjectHideFlags: 0

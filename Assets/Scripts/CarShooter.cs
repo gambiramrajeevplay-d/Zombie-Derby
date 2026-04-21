@@ -99,12 +99,16 @@ public class CarShooter : MonoBehaviour
             DetectTargets(); // 👈 renamed
         }
 
+        if (isHoldingShoot)
+        {
+            TryShoot();
+        }
         HandleTargeting(); // 👈 always runs smooth
 
         DrawSphereCast(firePoint.position, firePoint.forward, detectRadius, shootRange);
     }
   
-    void TryShoot()
+    public void TryShoot()
     {
         if (Time.time < lastShootTime + fireRate) return;
 
@@ -123,6 +127,18 @@ public class CarShooter : MonoBehaviour
 
         currentAmmo--;
         UpdateAmmoUI();
+    }
+
+    private bool isHoldingShoot = false;
+
+    public void StartShooting()
+    {
+        isHoldingShoot = true;
+    }
+
+    public void StopShooting()
+    {
+        isHoldingShoot = false;
     }
     void PlayShootSound()
     {

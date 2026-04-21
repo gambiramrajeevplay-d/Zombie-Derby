@@ -49,6 +49,7 @@ public class RCC_MobileButtons : MonoBehaviour
     public RCC_UIController NOSButtonSteeringWheel;
     public GameObject gearButton;
     public RCC_UIJoystick joystick;
+    public RCC_UIController shootButton;
 
     private float gasInput = 0f;
     private float brakeInput = 0f;
@@ -60,6 +61,8 @@ public class RCC_MobileButtons : MonoBehaviour
     private float gyroInput = 0f;
     private float joystickInput = 0f;
     private bool canUseNos = false;
+    private float shootInput = 0f;
+
 
     private Vector3 orgBrakeButtonPos;
     public enum ControlMode
@@ -115,6 +118,11 @@ public class RCC_MobileButtons : MonoBehaviour
     {
         if (!RCC_SceneManager.Instance.activePlayerVehicle)
             return;
+
+        if (shootButton)
+        {
+            shootButton.gameObject.SetActive(RCCSettings.controllerType == RCC_Settings.ControllerType.Mobile);
+        }
 
         switch (controlMode)
         {
@@ -178,8 +186,10 @@ public class RCC_MobileButtons : MonoBehaviour
             gearButton.gameObject.SetActive(false);
         if (joystick)
             joystick.gameObject.SetActive(false);
+        if (shootButton) shootButton.gameObject.SetActive(false);
+    
 
-    }
+}
 
     void EnableButtons()
     {
@@ -211,8 +221,9 @@ public class RCC_MobileButtons : MonoBehaviour
 
         if (joystick)
             joystick.gameObject.SetActive(true);
-
-    }
+        if (shootButton) shootButton.gameObject.SetActive(true);
+    
+}
 
     void Update()
     {
@@ -330,6 +341,7 @@ public class RCC_MobileButtons : MonoBehaviour
         leftInput = GetInput(leftButton);
         rightInput = GetInput(rightButton);
         handbrakeInput = GetInput(handbrakeButton);
+        shootInput = GetInput(shootButton);
         NOSInput = Mathf.Clamp((GetInput(NOSButton) + GetInput(NOSButtonSteeringWheel)), 0f, 1f);
 
         if (steeringWheel)
@@ -339,7 +351,22 @@ public class RCC_MobileButtons : MonoBehaviour
             joystickInput = joystick.inputHorizontal;
 
         FeedRCC();
+        if (shootInput > 0.5f)
+        {
+            TriggerShoot();
+        }
 
+    }
+    void TriggerShoot()
+    {
+        if (!RCC_SceneManager.Instance.activePlayerVehicle) return;
+
+        CarShooter shooter = RCC_SceneManager.Instance.activePlayerVehicle.GetComponent<CarShooter>();
+
+        if (shooter != null)
+        {
+            shooter.TryShoot();
+        }
     }
 
     private void FeedRCC()

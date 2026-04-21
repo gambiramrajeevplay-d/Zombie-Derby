@@ -979,7 +979,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 2403918692083132767, guid: 1145336dde2411747806e1643eca7fd7, type: 3}
   firePoint: {fileID: 6390523720145636373}
-  maxAmmo: 100
+  maxAmmo: 30
   fireRate: 0.2
   shootRange: 20
   targetLayers:
@@ -11819,7 +11819,7 @@ GameObject:
   - component: {fileID: 6099299957712003351}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

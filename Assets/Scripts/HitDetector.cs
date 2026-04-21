@@ -123,10 +123,16 @@ public class HitDetector : MonoBehaviour
 
     void PlayImpactSound(AudioClip clip)
     {
-        if (impactAudio == null || clip == null) return;
+        if (clip == null) return;
 
-        impactAudio.pitch = Random.Range(0.9f, 1.1f);
-        impactAudio.PlayOneShot(clip);
-        Destroy(impactAudio);
+        GameObject temp = new GameObject("TempImpactAudio");
+        temp.transform.position = transform.position;
+
+        AudioSource a = temp.AddComponent<AudioSource>();
+        a.spatialBlend = 1f;
+        a.pitch = Random.Range(0.9f, 1.1f);
+        a.PlayOneShot(clip);
+
+        Destroy(temp, clip.length);
     }
 }

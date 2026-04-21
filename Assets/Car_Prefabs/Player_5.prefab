@@ -6186,7 +6186,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 2403918692083132767, guid: 1145336dde2411747806e1643eca7fd7, type: 3}
   firePoint: {fileID: 1081339083308383371}
-  maxAmmo: 100
+  maxAmmo: 45
   fireRate: 0.2
   shootRange: 20
   targetLayers:

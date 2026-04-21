@@ -11,6 +11,8 @@ public class Landmine : MonoBehaviour
     // 🔥 PREFAB (NOT scene object)
     public ParticleSystem explodeEffectPrefab;
 
+    [Header("Sound")]
+    public AudioClip explodeClip;
     bool triggered = false;
 
     void OnTriggerEnter(Collider other)
@@ -21,7 +23,10 @@ public class Landmine : MonoBehaviour
         {
             triggered = true;
 
+            // 🔊 PLAY EXPLOSION SOUND
+            PlayExplosionSound();
             Debug.Log("Triggered by: " + other.name);
+
 
             // 💥 DAMAGE PLAYER
             PlayerHealth player = other.GetComponentInParent<PlayerHealth>();
@@ -51,5 +56,19 @@ public class Landmine : MonoBehaviour
             // 🧹 Destroy landmine
             Destroy(gameObject, 0.1f);
         }
+    }
+    void PlayExplosionSound()
+    {
+        if (explodeClip == null) return;
+
+        GameObject audioObj = new GameObject("ExplosionSound");
+        audioObj.transform.position = transform.position;
+
+        AudioSource source = audioObj.AddComponent<AudioSource>();
+        source.spatialBlend = 1f; // 3D sound
+        source.pitch = Random.Range(0.9f, 1.1f);
+        source.PlayOneShot(explodeClip);
+
+        Destroy(audioObj, explodeClip.length);
     }
 }

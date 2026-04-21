@@ -2128,20 +2128,26 @@ public class RCC_CarControllerV3 : MonoBehaviour {
 	private void ResetCar (){
 		
 		if(speed < 5 && !rigid.isKinematic){
+            if (transform.eulerAngles.z < 300 && transform.eulerAngles.z > 60)
+            {
+                resetTime += Time.deltaTime;
+                if (resetTime > 3)
+                {
 
-			if (!RCCSettings.autoReset)
-				return; 
-			
-			if(transform.eulerAngles.z < 300 && transform.eulerAngles.z > 60){
-				resetTime += Time.deltaTime;
-				if(resetTime > 3){
-					transform.rotation = Quaternion.Euler (0f, transform.eulerAngles.y, 0f);
-					transform.position = new Vector3(transform.position.x, transform.position.y + 3, transform.position.z);
-					resetTime = 0f;
-				}
-			}
-			
-		}
+                    // ✅ Force rotation to -90 Y
+                    transform.rotation = Quaternion.Euler(0f, -90f, 0f);
+
+                    // Keep position lift
+                    transform.position = new Vector3(
+                        transform.position.x,
+                        transform.position.y + 3,
+                        transform.position.z
+                    );
+
+                    resetTime = 0f;
+                }
+            }
+        }
 		
 	}
 

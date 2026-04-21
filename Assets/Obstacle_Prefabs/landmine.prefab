@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 9065803982985142725}
   m_Layer: 0
   m_Name: landmine
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -121,3 +121,4 @@ MonoBehaviour:
   damage: 30
   meshRenderer: {fileID: 1037795092474521258}
   explodeEffectPrefab: {fileID: 19848870, guid: a7c694f0877ea874fa57e033221095c3, type: 3}
+  explodeClip: {fileID: 8300000, guid: 79c3cb7a26813d146b07c293b0324039, type: 3}
